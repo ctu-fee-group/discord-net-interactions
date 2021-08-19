@@ -13,16 +13,14 @@ namespace Discord.Net.Interactions.Commands
     public class OneByOneCommandsRegistrator<TSlashInfo> : ICommandsRegistrator<TSlashInfo>
         where TSlashInfo : SlashCommandInfo
     {
-        private readonly ICommandHolder<TSlashInfo> _commandsHolder;
         private readonly DiscordRestClient _client;
         private readonly CommandCache _cache;
         private readonly ICommandPermissionsResolver<TSlashInfo> _commandPermissionsResolver;
 
-        public OneByOneCommandsRegistrator(ICommandHolder<TSlashInfo> commandsHolder,
-            ICommandPermissionsResolver<TSlashInfo> commandPermissionsResolver, DiscordRestClient client)
+        public OneByOneCommandsRegistrator(ICommandPermissionsResolver<TSlashInfo> commandPermissionsResolver,
+            DiscordRestClient client)
         {
             _commandPermissionsResolver = commandPermissionsResolver;
-            _commandsHolder = commandsHolder;
             _client = client;
             _cache = new CommandCache(client);
         }
