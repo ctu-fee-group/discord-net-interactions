@@ -10,24 +10,25 @@ namespace Discord.Net.Interactions.Executors
     /// <summary>
     /// Command executor decorator for executing the command in separate thread
     /// </summary>
-    public class ThreadPoolCommandExecutor : ICommandExecutor
+    public class ThreadPoolCommandExecutor<TSlashInfo> : ICommandExecutor<TSlashInfo>
+        where TSlashInfo : SlashCommandInfo
     {
         private readonly ILogger _logger;
-        private readonly ICommandExecutor _executor;
+        private readonly ICommandExecutor<TSlashInfo> _executor;
 
-        public ThreadPoolCommandExecutor(ILogger logger, ICommandExecutor underlyingExecutor)
+        public ThreadPoolCommandExecutor(ILogger logger, ICommandExecutor<TSlashInfo> underlyingExecutor)
         {
             _executor = underlyingExecutor;
             _logger = logger;
         }
         
-        public Task TryExecuteCommand(SlashCommandInfo info, SocketSlashCommand command, CancellationToken token = default)
+        public Task TryExecuteCommand(TSlashInfo info, SocketSlashCommand command, CancellationToken token = default)
         {
             _ = Task.Run(async () =>
             {
                 try
                 {
-                    await _executor.TryExecuteCommand(info, command);
+                    await _executor.TryExecuteCommand(info, command, token);
                 }
                 catch (OperationCanceledException)
                 {

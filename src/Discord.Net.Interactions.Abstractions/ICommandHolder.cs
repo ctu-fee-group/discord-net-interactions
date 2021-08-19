@@ -7,7 +7,7 @@ namespace Discord.Net.Interactions.Abstractions
     /// </summary>
     /// <param name="Info"></param>
     /// <param name="Executor"></param>
-    public record HeldSlashCommand<TSlashInfo>(TSlashInfo Info, ICommandExecutor Executor)
+    public record HeldSlashCommand<TSlashInfo>(TSlashInfo Info, ICommandExecutor<TSlashInfo> Executor)
         where TSlashInfo : SlashCommandInfo;
     
     /// <summary>
@@ -32,7 +32,7 @@ namespace Discord.Net.Interactions.Abstractions
         /// <param name="info"></param>
         /// <param name="executor"></param>
         /// <returns></returns>
-        public SlashCommandInfo AddCommand(TSlashInfo info, ICommandExecutor executor);
+        public SlashCommandInfo AddCommand(TSlashInfo info, ICommandExecutor<TSlashInfo> executor);
         
         /// <summary>
         /// Remove all commands from collection

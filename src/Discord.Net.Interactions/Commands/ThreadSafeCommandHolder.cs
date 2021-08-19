@@ -37,7 +37,7 @@ namespace Discord.Net.Interactions.Commands
             }
         }
 
-        public SlashCommandInfo AddCommand(TSlashInfo info, ICommandExecutor executor)
+        public SlashCommandInfo AddCommand(TSlashInfo info, ICommandExecutor<TSlashInfo> executor)
         {
             lock (_commandsLock)
             {

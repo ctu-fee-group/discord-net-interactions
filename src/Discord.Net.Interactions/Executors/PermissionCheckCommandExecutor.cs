@@ -7,20 +7,23 @@ using Microsoft.Extensions.Logging;
 
 namespace Discord.Net.Interactions.Executors
 {
-    public class PermissionCheckCommandExecutor : ICommandExecutor
+    public class PermissionCheckCommandExecutor<TSlashInfo> : ICommandExecutor<TSlashInfo>
+        where TSlashInfo : SlashCommandInfo
     {
         private readonly ILogger _logger;
-        private readonly ICommandExecutor _executor;
-        private readonly ICommandPermissionsResolver<SlashCommandInfo> _commandPermissionsResolver;
+        private readonly ICommandExecutor<TSlashInfo> _executor;
+        private readonly ICommandPermissionsResolver<TSlashInfo> _commandPermissionsResolver;
 
-        public PermissionCheckCommandExecutor(ILogger logger, ICommandPermissionsResolver<SlashCommandInfo> commandPermissionsResolver, ICommandExecutor underlyingExecutor)
+        public PermissionCheckCommandExecutor(ILogger logger,
+            ICommandPermissionsResolver<TSlashInfo> commandPermissionsResolver,
+            ICommandExecutor<TSlashInfo> underlyingExecutor)
         {
             _commandPermissionsResolver = commandPermissionsResolver;
             _executor = underlyingExecutor;
             _logger = logger;
         }
 
-        public async Task TryExecuteCommand(SlashCommandInfo info, SocketSlashCommand command,
+        public async Task TryExecuteCommand(TSlashInfo info, SocketSlashCommand command,
             CancellationToken token = default)
         {
             if (await _commandPermissionsResolver.HasPermissionAsync(command.User, info, token))

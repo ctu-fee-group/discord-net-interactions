@@ -10,7 +10,8 @@ namespace Discord.Net.Interactions.Executors
     /// <summary>
     /// Basic CommandExecutor calling Handlere of the command
     /// </summary>
-    public class HandlerCommandExecutor : ICommandExecutor
+    public class HandlerCommandExecutor<TSlashInfo> : ICommandExecutor<TSlashInfo>
+        where TSlashInfo : SlashCommandInfo
     {
         private readonly ILogger _logger;
         
@@ -19,7 +20,7 @@ namespace Discord.Net.Interactions.Executors
             _logger = logger;
         }
         
-        public async Task TryExecuteCommand(SlashCommandInfo info, SocketSlashCommand command, CancellationToken token = default)
+        public async Task TryExecuteCommand(TSlashInfo info, SocketSlashCommand command, CancellationToken token = default)
         {
             try
             {

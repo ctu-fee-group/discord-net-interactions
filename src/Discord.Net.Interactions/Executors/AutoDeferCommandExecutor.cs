@@ -10,11 +10,12 @@ namespace Discord.Net.Interactions.Executors
     /// If message is supplied, respond with that message will be sent.
     /// If message is null, Defer will be used.
     /// </summary>
-    public class AutoDeferCommandExecutor : ICommandExecutor
+    public class AutoDeferCommandExecutor<TSlashInfo> : ICommandExecutor<TSlashInfo>
+        where TSlashInfo : SlashCommandInfo
     {
-        private readonly ICommandExecutor _executor;
+        private readonly ICommandExecutor<TSlashInfo> _executor;
 
-        public AutoDeferCommandExecutor(ICommandExecutor underlyingExecutor, string? message = "I am thinking...")
+        public AutoDeferCommandExecutor(ICommandExecutor<TSlashInfo> underlyingExecutor, string? message = "I am thinking...")
         {
             _executor = underlyingExecutor;
             Message = message;
@@ -25,7 +26,7 @@ namespace Discord.Net.Interactions.Executors
         /// </summary>
         public string? Message { get; set; }
 
-        public async Task TryExecuteCommand(SlashCommandInfo info, SocketSlashCommand command,
+        public async Task TryExecuteCommand(TSlashInfo info, SocketSlashCommand command,
             CancellationToken token = default)
         {
             if (Message is null)
