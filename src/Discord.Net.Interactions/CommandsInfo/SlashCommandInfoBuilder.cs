@@ -6,6 +6,17 @@ namespace Discord.Net.Interactions.CommandsInfo
     public sealed class SlashCommandInfoBuilder
         : SlashCommandInfoBuilder<SlashCommandInfoBuilder, SlashCommandInfo>
     {
+        public override SlashCommandInfo Build()
+        {
+            if (DiscordNetBuilder == null || Handler == null)
+            {
+                throw new InvalidOperationException("DiscordNetBuilder, Permission and Handler must be set");
+            }
+
+            SlashCommandInfo info = new SlashCommandInfo(DiscordNetBuilder, Handler, Global, GuildId);
+
+            return info;
+        }
     }
 
     public abstract class SlashCommandInfoBuilder<TBuilder, TSlashInfo>
@@ -23,11 +34,6 @@ namespace Discord.Net.Interactions.CommandsInfo
         /// If the command should be registered as global
         /// </summary>
         public bool Global { get; set; }
-
-        /// <summary>
-        /// Permission name used for non-global commands
-        /// </summary>
-        public string? Permission { get; set; }
 
         /// <summary>
         /// Where the command should be added to
@@ -105,16 +111,6 @@ namespace Discord.Net.Interactions.CommandsInfo
         /// </summary>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public virtual SlashCommandInfo Build()
-        {
-            if (DiscordNetBuilder == null || Permission == null || Handler == null)
-            {
-                throw new InvalidOperationException("DiscordNetBuilder, Permission and Handler must be set");
-            }
-
-            SlashCommandInfo info = new SlashCommandInfo(DiscordNetBuilder, Handler, Global, GuildId);
-
-            return info;
-        }
+        public abstract TSlashInfo Build();
     }
 }
