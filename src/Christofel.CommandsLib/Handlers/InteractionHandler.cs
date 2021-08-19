@@ -22,7 +22,7 @@ namespace Christofel.CommandsLib.Handlers
     /// <remarks>
     /// Exposes basic command handling helper commands
     /// </remarks>
-    public class InteractionHandler : IStartable, IStoppable, IDisposable
+    public class InteractionHandler : IDisposable
     {
         protected readonly ICommandHolder _commandsHolder;
         protected readonly CancellationTokenSource _commandsTokenSource;

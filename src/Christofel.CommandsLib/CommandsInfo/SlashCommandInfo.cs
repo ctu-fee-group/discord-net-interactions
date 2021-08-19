@@ -21,12 +21,11 @@ namespace Christofel.CommandsLib.CommandsInfo
     /// </summary>
     public class SlashCommandInfo
     {
-        public SlashCommandInfo(SlashCommandBuilder builder, string permission,
+        public SlashCommandInfo(SlashCommandBuilder builder,
             SlashCommandHandler handler)
         {
             BuiltCommand = builder.Build();
             Handler = handler;
-            Permission = new CommandPermission(builder, permission);
         }
         
         /// <summary>
@@ -58,33 +57,5 @@ namespace Christofel.CommandsLib.CommandsInfo
         /// Registered command that is set after calling RegisterCommandAsync
         /// </summary>
         public RestApplicationCommand? Command { get; set; }
-        
-        /// <summary>
-        /// Permission of the command
-        /// </summary>
-        public CommandPermission Permission { get; }
-
-        /// <summary>
-        /// Check if given user has permission to execute this command
-        /// </summary>
-        /// <param name="user">User to check</param>
-        /// <param name="resolver">Permission resolver to use for resolving correct permissions</param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        public Task<bool> HasPermissionAsync(SocketUser user, IPermissionsResolver resolver, CancellationToken cancellationToken = new CancellationToken())
-        {
-            return resolver.AnyHasPermissionAsync(Permission, user.GetAllDiscordTargets(), cancellationToken);
-        }
-        
-        /// <summary>
-        /// Check if the command can be used by everyone
-        /// </summary>
-        /// <param name="resolver"></param>
-        /// <param name="token"></param>
-        /// <returns>Returns whether the command has assignment with DiscordTarget Everyone</returns>
-        public Task<bool> IsForEveryoneAsync(IPermissionsResolver resolver, CancellationToken token = new CancellationToken())
-        {
-            return resolver.HasPermissionAsync(Permission, DiscordTarget.Everyone, token);
-        }
     }
 }

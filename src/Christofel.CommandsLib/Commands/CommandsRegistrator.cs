@@ -20,49 +20,19 @@ namespace Christofel.CommandsLib.Commands
     /// <summary>
     /// Command registrator registering commands one by one
     /// </summary>
-    public class CommandsRegistrator : ICommandsRegistrator, IStartable, IRefreshable, IStoppable
+    public class CommandsRegistrator : ICommandsRegistrator
     {
         private readonly ICommandsGroupProvider _commandGroups;
         private readonly ICommandHolder _commandsHolder;
-        private readonly IPermissionService _permissions;
         private readonly DiscordRestClient _client;
         private readonly CommandCache _cache;
-        private readonly IApplicationLifetime _applicationLifetime;
 
-        public CommandsRegistrator(ICommandsGroupProvider commandGroups, ICommandHolder commandsHolder,
-            IPermissionService permissions, DiscordRestClient client, IApplicationLifetime applicationLifetime)
+        public CommandsRegistrator(ICommandsGroupProvider commandGroups, ICommandHolder commandsHolder, DiscordRestClient client)
         {
-            _applicationLifetime = applicationLifetime;
             _commandGroups = commandGroups;
             _commandsHolder = commandsHolder;
-            _permissions = permissions;
             _client = client;
             _cache = new CommandCache(client);
-        }
-
-        public async Task StartAsync(CancellationToken token = new CancellationToken())
-        {
-            _cache.Reset();
-            token.ThrowIfCancellationRequested();
-            await Task.WhenAll(
-                _commandGroups.GetGroups().Select(x => x.SetupCommandsAsync(_commandsHolder, token)));
-
-            await RegisterCommandsAsync(_commandsHolder, token);
-        }
-
-        public async Task StopAsync(CancellationToken token = new CancellationToken())
-        {
-            _cache.Reset();
-            if (_applicationLifetime.State != LifetimeState.Stopping)
-            {
-                await UnregisterCommandsAsync(_commandsHolder, token);
-            }
-        }
-
-        public Task RefreshAsync(CancellationToken token = new CancellationToken())
-        {
-            _cache.Reset();
-            return RefreshCommandsAndPermissionsAsync(_commandsHolder, token);
         }
 
         public async Task RegisterCommandsAsync(ICommandHolder holder, CancellationToken token = default)
@@ -72,7 +42,6 @@ namespace Christofel.CommandsLib.Commands
                 try
                 {
                     await RegisterCommandAsync(heldCommand.Info, token);
-                    _permissions.RegisterPermission(heldCommand.Info.Permission);
                 }
                 catch (Exception e)
                 {

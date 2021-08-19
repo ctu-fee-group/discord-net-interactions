@@ -10,21 +10,8 @@ namespace Christofel.CommandsLib.Executors
         private bool _defer, _permissionsCheck, _threadPool;
 
         private ICommandExecutor? _base;
-        private IPermissionsResolver? _resolver;
         private string? _deferMessage;
         private ILogger? _logger;
-
-        /// <summary>
-        /// Add PermissionCheckCommandExecutor decorator
-        /// </summary>
-        /// <param name="resolver"></param>
-        /// <returns>this</returns>
-        public CommandExecutorBuilder WithPermissionsCheck(IPermissionsResolver resolver)
-        {
-            _permissionsCheck = true;
-            _resolver = resolver;
-            return this;
-        }
 
         /// <summary>
         /// Add AutoDeferCommandExecutor decorator
@@ -103,21 +90,6 @@ namespace Christofel.CommandsLib.Executors
             if (_defer)
             {
                 executor = new AutoDeferCommandExecutor(executor, _deferMessage);
-            }
-
-            if (_permissionsCheck)
-            {
-                if (_logger is null)
-                {
-                    throw new InvalidOperationException("Logger must not be null");
-                }
-                
-                if (_resolver == null)
-                {
-                    throw new InvalidOperationException("Permission resolver cannot be null if permission check should be enabled");
-                }
-                
-                executor = new PermissionCheckCommandExecutor(executor, _logger, _resolver);
             }
 
             return executor;
