@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+        <RootNamespace>Discord.Net.Interactions.Abstractions</RootNamespace>
+        <Nullable>enable</Nullable>
+        <PackageId>Discord.Net.Interactions.Abstractions</PackageId>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Discord.Net.Labs.WebSocket" Version="3.0.1-pre" />
+    </ItemGroup>
+
+</Project>

@@ -1,10 +1,10 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Discord.Net.InteractionsService", "Discord.Net.InteractionsService\Discord.Net.InteractionsService.csproj", "{73F44B01-7237-4086-81FF-5534ADEE985F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Discord.Net.Interactions", "Discord.Net.Interactions\Discord.Net.Interactions.csproj", "{73F44B01-7237-4086-81FF-5534ADEE985F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Discord.Net.InteractionsService.DI", "Discord.Net.InteractionsService.DI\Discord.Net.InteractionsService.DI.csproj", "{2B8DBEEB-7647-49E7-A945-C845F8254B78}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Discord.Net.Interactions.DI", "Discord.Net.Interactions.DI\Discord.Net.Interactions.DI.csproj", "{2B8DBEEB-7647-49E7-A945-C845F8254B78}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Discord.Net.InteractionsService.Abstractions", "Discord.Net.InteractionsService.Abstractions\Discord.Net.InteractionsService.Abstractions.csproj", "{C0BE9289-D8ED-455A-BEE8-1664B701BD5A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Discord.Net.Interactions.Abstractions", "Discord.Net.Interactions.Abstractions\Discord.Net.Interactions.Abstractions.csproj", "{C0BE9289-D8ED-455A-BEE8-1664B701BD5A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
