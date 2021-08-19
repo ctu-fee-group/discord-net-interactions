@@ -5,7 +5,7 @@ using Discord.Net.Interactions.Abstractions;
 namespace Discord.Net.Interactions.Commands
 {
     /// <summary>
-    /// Thread-safe implementation of CommandHolder
+    /// Thread-safe implementation of CommandHolder using locks to achieve thread safety
     /// </summary>
     public class ThreadSafeCommandHolder<TSlashInfo> : ICommandHolder<TSlashInfo>
         where TSlashInfo : SlashCommandInfo

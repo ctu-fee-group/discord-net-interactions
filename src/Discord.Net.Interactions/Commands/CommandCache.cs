@@ -7,6 +7,9 @@ using Discord.Rest;
 
 namespace Discord.Net.Interactions.Commands
 {
+    /// <summary>
+    /// Cache commands in memory to avoid calling REST multiple times
+    /// </summary>
     public class CommandCache
     {
         private readonly DiscordRestClient _client;
@@ -26,6 +29,12 @@ namespace Discord.Net.Interactions.Commands
             _cachedGuildCommands = null;
         }
 
+        /// <summary>
+        /// Obtrain guild commands either from cache or from Discord REST if needed
+        /// </summary>
+        /// <param name="guildId"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
         public async Task<IReadOnlyCollection<RestGuildCommand>> GetGuildCommands(ulong guildId,
             CancellationToken token = default)
         {
@@ -47,6 +56,11 @@ namespace Discord.Net.Interactions.Commands
             return guildCommands;
         }
 
+        /// <summary>
+        /// Obtain global commands either from cache or from Discord REST if needed
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
         public async Task<IReadOnlyCollection<RestGlobalCommand>> GetGlobalCommands(CancellationToken token = default)
         {
             if (_cachedGlobalCommands == null)

@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 namespace Discord.Net.Interactions.Executors
 {
     /// <summary>
-    /// Basic CommandExecutor calling Handlere of the command
+    /// Basic CommandExecutor calling Handler of the command in try catch, logging if there was an error
     /// </summary>
     public class HandlerCommandExecutor<TSlashInfo> : ICommandExecutor<TSlashInfo>
         where TSlashInfo : SlashCommandInfo

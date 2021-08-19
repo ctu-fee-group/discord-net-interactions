@@ -74,7 +74,6 @@ namespace Discord.Net.Interactions.Handlers
 
         /// <summary>
         /// Stops all current running handlers
-        /// and unregister commands
         /// </summary>
         /// <param name="token"></param>
         public Task StopAsync(CancellationToken token = new CancellationToken())

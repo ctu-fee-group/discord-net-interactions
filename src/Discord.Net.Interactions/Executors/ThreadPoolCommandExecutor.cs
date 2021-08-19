@@ -9,6 +9,7 @@ namespace Discord.Net.Interactions.Executors
 {
     /// <summary>
     /// Command executor decorator for executing the command in separate thread
+    /// If there is exception inside the thread, it will be logged
     /// </summary>
     public class ThreadPoolCommandExecutor<TSlashInfo> : ICommandExecutor<TSlashInfo>
         where TSlashInfo : SlashCommandInfo

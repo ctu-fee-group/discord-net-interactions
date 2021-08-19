@@ -6,6 +6,12 @@ namespace Discord.Net.Interactions.Abstractions
 {
     public static class GuildApplicationCommandPermissionExtensions
     {
+        /// <summary>
+        /// Check if given GuildApplicationCommandPermission matches ApplicationCommandPermission[]
+        /// </summary>
+        /// <param name="commandPermission"></param>
+        /// <param name="permissions"></param>
+        /// <returns></returns>
         public static bool MatchesPermissions(this GuildApplicationCommandPermission commandPermission,
             ApplicationCommandPermission[] permissions)
         {

@@ -9,6 +9,8 @@ namespace Discord.Net.Interactions.Executors
     /// Executor that will auto defer the command.
     /// If message is supplied, respond with that message will be sent.
     /// If message is null, Defer will be used.
+    ///
+    /// The message will be sent ephemerally.
     /// </summary>
     public class AutoDeferCommandExecutor<TSlashInfo> : ICommandExecutor<TSlashInfo>
         where TSlashInfo : SlashCommandInfo

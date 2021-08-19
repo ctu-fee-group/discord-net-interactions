@@ -14,10 +14,11 @@ namespace Discord.Net.Interactions.HandlerCreator
     {
         /// <summary>
         /// Create SlashCommandHandler from given Delegate.
+        /// It should have the following signature: SocketSlashCommand, *arguments for the command with matching names*, CancellationToken
         /// Uses <see cref="EfficientInvoker"/> for invoking the delegate faster.
         /// </summary>
-        /// <param name="function"></param>
-        /// <param name="getArguments"></param>
+        /// <param name="function">What function to call during handling</param>
+        /// <param name="getArguments">Function to obtain arguments for the delegate with</param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
         public static SlashCommandHandler CreateHandler(Delegate function,
@@ -37,10 +38,11 @@ namespace Discord.Net.Interactions.HandlerCreator
 
         /// <summary>
         /// Create SlashCommandHandler from given Delegate.
+        /// It should have the following signature: SocketSlashCommand, *arguments for the command with matching names*, CancellationToken
         /// Uses <see cref="EfficientInvoker"/> for invoking the delegate faster.
         /// </summary>
-        /// <param name="function"></param>
-        /// <param name="getArguments"></param>
+        /// <param name="function">What function to call during handling</param>
+        /// <param name="getArguments">Function to obtain arguments for the delegate with</param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
         public static Func<SocketSlashCommand, T, CancellationToken, Task> CreateHandler<T>(Delegate function,

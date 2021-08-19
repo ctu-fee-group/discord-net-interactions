@@ -5,6 +5,12 @@ namespace Discord.Net.Interactions.Abstractions
 {
     public static class IApplicationCommandExtensions
     {
+        /// <summary>
+        /// Checks if IApplicationCommand matches SlashCommandCreationProperties
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="creationProperties"></param>
+        /// <returns></returns>
         public static bool MatchesCreationProperties(this IApplicationCommand command,
             SlashCommandCreationProperties creationProperties)
         {

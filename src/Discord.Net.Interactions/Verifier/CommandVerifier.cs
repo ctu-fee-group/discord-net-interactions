@@ -144,6 +144,12 @@ namespace Discord.Net.Interactions.Verifier
                 : Command.FollowupChunkAsync(response, ephemeral: true);
         }
 
+        /// <summary>
+        /// Queue work to async queue that will be executed on FinishVerificationAsync call.
+        ///
+        /// This should be used from the validators.
+        /// </summary>
+        /// <param name="work"></param>
         public void QueueWork(Func<Task> work)
         {
             _tasks.Add(_task = _task.ContinueWith<CommandVerifier<T>>(task =>
