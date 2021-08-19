@@ -29,7 +29,7 @@ namespace Discord.Net.Interactions.DI
 
         public void RegisterGroupType(Type commandGroupType)
         {
-            if (!commandGroupType.IsAssignableTo(typeof(ICommandGroup<>)))
+            if (!commandGroupType.IsAssignableTo(typeof(ICommandGroup<TSlashInfo>)))
             {
                 throw new ArgumentException($@"Type {commandGroupType.Name} cannot be added as it doesn't inherit from ICommandGroup");
             }
