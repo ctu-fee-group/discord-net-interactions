@@ -16,9 +16,12 @@ namespace Discord.Net.Interactions.Commands
         private readonly ICommandHolder<TSlashInfo> _commandsHolder;
         private readonly DiscordRestClient _client;
         private readonly CommandCache _cache;
+        private readonly ICommandPermissionsResolver<TSlashInfo> _commandPermissionsResolver;
 
-        public OneByOneCommandsRegistrator(ICommandHolder<TSlashInfo> commandsHolder, DiscordRestClient client)
+        public OneByOneCommandsRegistrator(ICommandHolder<TSlashInfo> commandsHolder,
+            ICommandPermissionsResolver<TSlashInfo> commandPermissionsResolver, DiscordRestClient client)
         {
+            _commandPermissionsResolver = commandPermissionsResolver;
             _commandsHolder = commandsHolder;
             _client = client;
             _cache = new CommandCache(client);
@@ -47,7 +50,8 @@ namespace Discord.Net.Interactions.Commands
                     .Select(x => UnregisterCommandAsync(x.Info, token)));
         }
 
-        public Task RefreshCommandsAndPermissionsAsync(ICommandHolder<TSlashInfo> holder, CancellationToken token = default)
+        public Task RefreshCommandsAndPermissionsAsync(ICommandHolder<TSlashInfo> holder,
+            CancellationToken token = default)
         {
             return Task.WhenAll(
                 holder.Commands.Select(x => RefreshCommandAsync(x.Info, token)));
@@ -88,7 +92,6 @@ namespace Discord.Net.Interactions.Commands
         private async Task UnregisterCommandAsync(TSlashInfo info,
             CancellationToken token = new CancellationToken())
         {
-            //_permissions.UnregisterPermission(info.Permission);
             if (info.Command != null)
             {
                 await info.Command.DeleteAsync(new()
@@ -123,28 +126,29 @@ namespace Discord.Net.Interactions.Commands
 
         private async Task RefreshPermissions(TSlashInfo info, CancellationToken token = new CancellationToken())
         {
-            /*if (info.Command is RestGlobalCommand)
+            if (info.Command is RestGlobalCommand)
             {
                 return; // Global commands cannot have permissions (at least not in Discord.NET yet)
             }
             else if (info.Command is RestGuildCommand guildCommand)
             {
                 ApplicationCommandPermission[] permissions =
-                    await _permissions.Resolver.GetSlashCommandPermissionsAsync(info.Permission, token);
+                    (await _commandPermissionsResolver.GetCommandPermissionsAsync(info, token)).ToArray();
                 GuildApplicationCommandPermission? commandPermission = await guildCommand.GetCommandPermission();
 
                 if (commandPermission == null || !commandPermission.MatchesPermissions(permissions))
                 {
                     await guildCommand.ModifyCommandPermissions(permissions);
                 }
-            }*/
+            }
         }
 
         private async Task<SlashCommandCreationProperties> SetDefaultPermissionAsync(
             TSlashInfo info,
             CancellationToken token = new CancellationToken())
         {
-            //info.BuiltCommand.DefaultPermission = await info.IsForEveryoneAsync(_permissions.Resolver, token);
+            info.BuiltCommand.DefaultPermission =
+                await _commandPermissionsResolver.IsForEveryoneAsync(info, token);
             return info.BuiltCommand;
         }
 
@@ -156,7 +160,8 @@ namespace Discord.Net.Interactions.Commands
             command.Description = info.BuiltCommand.Description;
             command.Name = info.BuiltCommand.Name;
             command.Options = info.BuiltCommand.Options;
-            //command.DefaultPermission = await info.IsForEveryoneAsync(_permissions.Resolver, token);
+            command.DefaultPermission =
+                await _commandPermissionsResolver.IsForEveryoneAsync(info, token);
             return command;
         }
 
@@ -193,7 +198,7 @@ namespace Discord.Net.Interactions.Commands
             }
 
             RestGuildCommand? guildCommand =
-                await _cache.GetGuildCommand((ulong) info.GuildId, info.BuiltCommand.Name, token);
+                await _cache.GetGuildCommand((ulong)info.GuildId, info.BuiltCommand.Name, token);
 
             if (guildCommand != null)
             {
@@ -202,7 +207,7 @@ namespace Discord.Net.Interactions.Commands
             }
             else
             {
-                guildCommand = await _client.CreateGuildCommand(info.BuiltCommand, (ulong) info.GuildId,
+                guildCommand = await _client.CreateGuildCommand(info.BuiltCommand, (ulong)info.GuildId,
                     new RequestOptions()
                     {
                         CancelToken = token
