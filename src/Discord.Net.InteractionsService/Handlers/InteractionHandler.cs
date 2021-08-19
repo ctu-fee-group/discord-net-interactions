@@ -12,13 +12,14 @@ namespace Discord.NET.InteractionsService.Handlers
     /// <remarks>
     /// Exposes basic command handling helper commands
     /// </remarks>
-    public class InteractionHandler : IDisposable
+    public class InteractionHandler<TSlashInfo> : IDisposable
+        where TSlashInfo : SlashCommandInfo
     {
-        protected readonly ICommandHolder _commandsHolder;
+        protected readonly ICommandHolder<TSlashInfo> _commandsHolder;
         protected readonly CancellationTokenSource _commandsTokenSource;
         protected readonly DiscordSocketClient _client;
         
-        public InteractionHandler(DiscordSocketClient client, ICommandHolder commandsHolder)
+        public InteractionHandler(DiscordSocketClient client, ICommandHolder<TSlashInfo> commandsHolder)
         {
             _commandsTokenSource = new CancellationTokenSource();
             _commandsHolder = commandsHolder;
@@ -45,7 +46,7 @@ namespace Discord.NET.InteractionsService.Handlers
         {
             if (arg is SocketSlashCommand command)
             {
-                ICommandHolder.HeldSlashCommand? heldCommand = _commandsHolder.TryGetSlashCommand(command.Data.Name);
+                HeldSlashCommand<TSlashInfo>? heldCommand = _commandsHolder.TryGetSlashCommand(command.Data.Name);
 
                 if (heldCommand != null)
                 {

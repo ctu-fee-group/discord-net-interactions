@@ -6,7 +6,8 @@ namespace Discord.NET.InteractionsService.Abstractions
     /// <summary>
     /// Group of commands exposing a function for registering the commands
     /// </summary>
-    public interface ICommandGroup
+    public interface ICommandGroup<TSlashInfo>
+        where TSlashInfo : SlashCommandInfo
     {
         /// <summary>
         /// Builds and registers slash commands
@@ -14,6 +15,6 @@ namespace Discord.NET.InteractionsService.Abstractions
         /// <param name="holder"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        public Task SetupCommandsAsync(ICommandHolder holder, CancellationToken token = new CancellationToken());
+        public Task SetupCommandsAsync(ICommandHolder<TSlashInfo> holder, CancellationToken token = new CancellationToken());
     }
 }
