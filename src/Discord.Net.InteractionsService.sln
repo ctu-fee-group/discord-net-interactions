@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Discord.Net.InteractionsService", "Discord.Net.InteractionsService\Discord.Net.InteractionsService.csproj", "{73F44B01-7237-4086-81FF-5534ADEE985F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Discord.Net.InteractionsService.DI", "Discord.Net.InteractionsService.DI\Discord.Net.InteractionsService.DI.csproj", "{2B8DBEEB-7647-49E7-A945-C845F8254B78}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Discord.Net.InteractionsService.Abstractions", "Discord.Net.InteractionsService.Abstractions\Discord.Net.InteractionsService.Abstractions.csproj", "{C0BE9289-D8ED-455A-BEE8-1664B701BD5A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{73F44B01-7237-4086-81FF-5534ADEE985F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73F44B01-7237-4086-81FF-5534ADEE985F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{73F44B01-7237-4086-81FF-5534ADEE985F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{73F44B01-7237-4086-81FF-5534ADEE985F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2B8DBEEB-7647-49E7-A945-C845F8254B78}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2B8DBEEB-7647-49E7-A945-C845F8254B78}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2B8DBEEB-7647-49E7-A945-C845F8254B78}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2B8DBEEB-7647-49E7-A945-C845F8254B78}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C0BE9289-D8ED-455A-BEE8-1664B701BD5A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C0BE9289-D8ED-455A-BEE8-1664B701BD5A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C0BE9289-D8ED-455A-BEE8-1664B701BD5A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C0BE9289-D8ED-455A-BEE8-1664B701BD5A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
