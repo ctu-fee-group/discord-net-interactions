@@ -4,24 +4,34 @@ using Microsoft.Extensions.Logging;
 
 namespace Discord.NET.InteractionsService.Executors
 {
-    public class CommandExecutorBuilder
+    public sealed class CommandExecutorBuilder
+        : CommandExecutorBuilder<CommandExecutorBuilder> { }
+
+    public class CommandExecutorBuilder<TBuilder>
+        where TBuilder : CommandExecutorBuilder<TBuilder>
     {
-        private bool _defer, _permissionsCheck, _threadPool;
+        private readonly TBuilder _builderInstance;
+        private bool _defer, _threadPool;
 
         private ICommandExecutor? _base;
         private string? _deferMessage;
         private ILogger? _logger;
+
+        public CommandExecutorBuilder()
+        {
+            _builderInstance = (TBuilder)this;
+        }
 
         /// <summary>
         /// Add AutoDeferCommandExecutor decorator
         /// </summary>
         /// <param name="message">Message to respond with, if null, defer will be calle</param>
         /// <returns>this</returns>
-        public CommandExecutorBuilder WithDeferMessage(string? message = null)
+        public TBuilder WithDeferMessage(string? message = null)
         {
             _defer = true;
             _deferMessage = message;
-            return this;
+            return _builderInstance;
         }
         
         /// <summary>
@@ -29,10 +39,10 @@ namespace Discord.NET.InteractionsService.Executors
         /// </summary>
         /// <param name="logger"></param>
         /// <returns></returns>
-        public CommandExecutorBuilder WithLogger(ILogger logger)
+        public TBuilder WithLogger(ILogger logger)
         {
             _logger = logger;
-            return this;
+            return _builderInstance;
         }
 
         /// <summary>
@@ -40,20 +50,20 @@ namespace Discord.NET.InteractionsService.Executors
         /// </summary>
         /// <param name="executor"></param>
         /// <returns></returns>
-        public CommandExecutorBuilder SetBaseExecutor(ICommandExecutor executor)
+        public TBuilder SetBaseExecutor(ICommandExecutor executor)
         {
             _base = executor;
-            return this;
+            return _builderInstance;
         }
 
         /// <summary>
         /// Add ThreadPoolCommandExecutor decorator
         /// </summary>
         /// <returns></returns>
-        public CommandExecutorBuilder WithThreadPool()
+        public TBuilder WithThreadPool()
         {
             _threadPool = true;
-            return this;
+            return _builderInstance;
         }
 
         /// <summary>
