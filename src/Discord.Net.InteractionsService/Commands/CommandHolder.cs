@@ -9,28 +9,29 @@ namespace Discord.NET.InteractionsService.Commands
     /// <summary>
     /// Thread-safe implementation of CommandHolder
     /// </summary>
-    public class CommandHolder : ICommandHolder
+    public class CommandHolder<TSlashInfo> : ICommandHolder<TSlashInfo>
+        where TSlashInfo : SlashCommandInfo
     {
-        private readonly List<ICommandHolder.HeldSlashCommand> _commands;
+        private readonly List<HeldSlashCommand<TSlashInfo>> _commands;
         private readonly object _commandsLock = new object();
         
-        public CommandHolder(DiscordRestClient client)
+        public CommandHolder()
         {
-            _commands = new List<ICommandHolder.HeldSlashCommand>();
+            _commands = new List<HeldSlashCommand<TSlashInfo>>();
         }
 
-        public IEnumerable<ICommandHolder.HeldSlashCommand> Commands
+        public IEnumerable<HeldSlashCommand<TSlashInfo>> Commands
         {
             get
             {
                 lock (_commandsLock)
                 {
-                    return new List<ICommandHolder.HeldSlashCommand>(_commands);
+                    return new List<HeldSlashCommand<TSlashInfo>>(_commands);
                 }
             }
         }
 
-        public ICommandHolder.HeldSlashCommand? TryGetSlashCommand(string name)
+        public HeldSlashCommand<TSlashInfo>? TryGetSlashCommand(string name)
         {
             lock (_commandsLock)
             {
@@ -38,11 +39,11 @@ namespace Discord.NET.InteractionsService.Commands
             }
         }
 
-        public SlashCommandInfo AddCommand(SlashCommandInfo info, ICommandExecutor executor)
+        public SlashCommandInfo AddCommand(TSlashInfo info, ICommandExecutor executor)
         {
             lock (_commandsLock)
             {
-                _commands.Add(new ICommandHolder.HeldSlashCommand(info, executor));
+                _commands.Add(new HeldSlashCommand<TSlashInfo>(info, executor));
             }
 
             return info;

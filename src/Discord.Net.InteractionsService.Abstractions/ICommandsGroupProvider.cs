@@ -5,8 +5,9 @@ namespace Discord.NET.InteractionsService.Abstractions
     /// <summary>
     /// Provider ICommandGroup for ICommandRegistrator
     /// </summary>
-    public interface ICommandsGroupProvider
+    public interface ICommandsGroupProvider<TSlashInfo>
+        where TSlashInfo : SlashCommandInfo
     {
-        public IEnumerable<ICommandGroup> GetGroups();
+        public IEnumerable<ICommandGroup<TSlashInfo>> GetGroups();
     }
 }

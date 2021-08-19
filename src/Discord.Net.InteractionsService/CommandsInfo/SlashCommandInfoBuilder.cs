@@ -1,10 +1,24 @@
 using System;
+using System.Linq.Expressions;
 using Discord.NET.InteractionsService.Abstractions;
 
 namespace Discord.NET.InteractionsService.CommandsInfo
 {
-    public class SlashCommandInfoBuilder
+    public sealed class SlashCommandInfoBuilder
+        : SlashCommandInfoBuilder<SlashCommandInfoBuilder, SlashCommandInfo>
+    { }
+
+    public class SlashCommandInfoBuilder<TBuilder, TSlashInfo>
+        where TSlashInfo : SlashCommandInfo
+        where TBuilder : SlashCommandInfoBuilder<TBuilder, TSlashInfo>
     {
+        private readonly TBuilder _builderInstance;
+
+        public SlashCommandInfoBuilder()
+        {
+            _builderInstance = (TBuilder) this;
+        }
+
         /// <summary>
         /// If the command should be registered as global
         /// </summary>
@@ -35,10 +49,10 @@ namespace Discord.NET.InteractionsService.CommandsInfo
         /// </summary>
         /// <param name="builder"></param>
         /// <returns></returns>
-        public SlashCommandInfoBuilder WithBuilder(SlashCommandBuilder builder)
+        public TBuilder WithBuilder(SlashCommandBuilder builder)
         {
             DiscordNetBuilder = builder;
-            return this;
+            return _builderInstance;
         }
         
         /// <summary>
@@ -46,10 +60,10 @@ namespace Discord.NET.InteractionsService.CommandsInfo
         /// </summary>
         /// <param name="handler"></param>
         /// <returns></returns>
-        public SlashCommandInfoBuilder WithHandler(SlashCommandHandler handler)
+        public TBuilder WithHandler(SlashCommandHandler handler)
         {
             Handler = handler;
-            return this;
+            return _builderInstance;
         }
 
         /// <summary>
@@ -57,10 +71,10 @@ namespace Discord.NET.InteractionsService.CommandsInfo
         /// </summary>
         /// <param name="global"></param>
         /// <returns></returns>
-        public SlashCommandInfoBuilder SetGlobal(bool global = true)
+        public TBuilder SetGlobal(bool global = true)
         {
             Global = global;
-            return this;
+            return _builderInstance;
         }
 
         /// <summary>
@@ -68,10 +82,10 @@ namespace Discord.NET.InteractionsService.CommandsInfo
         /// </summary>
         /// <param name="permission"></param>
         /// <returns></returns>
-        public SlashCommandInfoBuilder WithPermission(string permission)
+        public TBuilder WithPermission(string permission)
         {
             Permission = permission;
-            return this;
+            return _builderInstance;
         }
         
         /// <summary>
@@ -79,11 +93,11 @@ namespace Discord.NET.InteractionsService.CommandsInfo
         /// </summary>
         /// <param name="guildId"></param>
         /// <returns></returns>
-        public SlashCommandInfoBuilder WithGuild(ulong guildId)
+        public TBuilder WithGuild(ulong guildId)
         {
             GuildId = guildId;
             Global = false;
-            return this;
+            return _builderInstance;
         }
 
         /// <summary>
@@ -91,7 +105,7 @@ namespace Discord.NET.InteractionsService.CommandsInfo
         /// </summary>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public SlashCommandInfo Build()
+        public virtual SlashCommandInfo Build()
         {
             if (DiscordNetBuilder == null || Permission == null || Handler == null)
             {

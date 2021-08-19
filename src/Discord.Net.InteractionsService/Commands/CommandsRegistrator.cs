@@ -10,24 +10,23 @@ namespace Discord.NET.InteractionsService.Commands
     /// <summary>
     /// Command registrator registering commands one by one
     /// </summary>
-    public class CommandsRegistrator : ICommandsRegistrator
+    public class CommandsRegistrator<TSlashInfo> : ICommandsRegistrator<TSlashInfo>
+        where TSlashInfo : SlashCommandInfo
     {
-        private readonly ICommandsGroupProvider _commandGroups;
-        private readonly ICommandHolder _commandsHolder;
+        private readonly ICommandHolder<TSlashInfo> _commandsHolder;
         private readonly DiscordRestClient _client;
         private readonly CommandCache _cache;
 
-        public CommandsRegistrator(ICommandsGroupProvider commandGroups, ICommandHolder commandsHolder, DiscordRestClient client)
+        public CommandsRegistrator(ICommandHolder<TSlashInfo> commandsHolder, DiscordRestClient client)
         {
-            _commandGroups = commandGroups;
             _commandsHolder = commandsHolder;
             _client = client;
             _cache = new CommandCache(client);
         }
 
-        public async Task RegisterCommandsAsync(ICommandHolder holder, CancellationToken token = default)
+        public async Task RegisterCommandsAsync(ICommandHolder<TSlashInfo> holder, CancellationToken token = default)
         {
-            foreach (ICommandHolder.HeldSlashCommand heldCommand in holder.Commands)
+            foreach (HeldSlashCommand<TSlashInfo> heldCommand in holder.Commands)
             {
                 try
                 {
@@ -41,20 +40,20 @@ namespace Discord.NET.InteractionsService.Commands
             }
         }
 
-        public Task UnregisterCommandsAsync(ICommandHolder holder, CancellationToken token = default)
+        public Task UnregisterCommandsAsync(ICommandHolder<TSlashInfo> holder, CancellationToken token = default)
         {
             return Task.WhenAll(
                 holder.Commands
                     .Select(x => UnregisterCommandAsync(x.Info, token)));
         }
 
-        public Task RefreshCommandsAndPermissionsAsync(ICommandHolder holder, CancellationToken token = default)
+        public Task RefreshCommandsAndPermissionsAsync(ICommandHolder<TSlashInfo> holder, CancellationToken token = default)
         {
             return Task.WhenAll(
                 holder.Commands.Select(x => RefreshCommandAsync(x.Info, token)));
         }
 
-        private async Task RefreshCommandAsync(SlashCommandInfo info, CancellationToken token = new CancellationToken())
+        private async Task RefreshCommandAsync(TSlashInfo info, CancellationToken token = new CancellationToken())
         {
             if (info.Command == null)
             {
@@ -65,7 +64,7 @@ namespace Discord.NET.InteractionsService.Commands
             await RefreshPermissions(info, token);
         }
 
-        private async Task<IApplicationCommand> RegisterCommandAsync(SlashCommandInfo info,
+        private async Task<IApplicationCommand> RegisterCommandAsync(TSlashInfo info,
             CancellationToken token = new CancellationToken())
         {
             if (info.Command == null)
@@ -86,7 +85,7 @@ namespace Discord.NET.InteractionsService.Commands
             return info.Command;
         }
 
-        private async Task UnregisterCommandAsync(SlashCommandInfo info,
+        private async Task UnregisterCommandAsync(TSlashInfo info,
             CancellationToken token = new CancellationToken())
         {
             //_permissions.UnregisterPermission(info.Permission);
@@ -102,7 +101,7 @@ namespace Discord.NET.InteractionsService.Commands
             info.Registered = false;
         }
 
-        private async Task ModifyCommand(SlashCommandInfo info, CancellationToken token = new CancellationToken())
+        private async Task ModifyCommand(TSlashInfo info, CancellationToken token = new CancellationToken())
         {
             if (info.Command is RestGlobalCommand globalCommand &&
                 !info.Command.MatchesCreationProperties(info.BuiltCommand))
@@ -122,7 +121,7 @@ namespace Discord.NET.InteractionsService.Commands
             }
         }
 
-        private async Task RefreshPermissions(SlashCommandInfo info, CancellationToken token = new CancellationToken())
+        private async Task RefreshPermissions(TSlashInfo info, CancellationToken token = new CancellationToken())
         {
             /*if (info.Command is RestGlobalCommand)
             {
@@ -142,7 +141,7 @@ namespace Discord.NET.InteractionsService.Commands
         }
 
         private async Task<SlashCommandCreationProperties> SetDefaultPermissionAsync(
-            SlashCommandInfo info,
+            TSlashInfo info,
             CancellationToken token = new CancellationToken())
         {
             //info.BuiltCommand.DefaultPermission = await info.IsForEveryoneAsync(_permissions.Resolver, token);
@@ -150,7 +149,7 @@ namespace Discord.NET.InteractionsService.Commands
         }
 
         private async Task<ApplicationCommandProperties> ModifyCommandProperties(
-            SlashCommandInfo info,
+            TSlashInfo info,
             ApplicationCommandProperties command,
             CancellationToken token = new CancellationToken())
         {
@@ -161,7 +160,7 @@ namespace Discord.NET.InteractionsService.Commands
             return command;
         }
 
-        private async Task<RestApplicationCommand> CreateGlobalCommand(SlashCommandInfo info,
+        private async Task<RestApplicationCommand> CreateGlobalCommand(TSlashInfo info,
             CancellationToken token = new CancellationToken())
         {
             RestGlobalCommand? globalCommand = await _cache.GetGlobalCommand(info.BuiltCommand.Name, token);
@@ -185,7 +184,7 @@ namespace Discord.NET.InteractionsService.Commands
             return globalCommand;
         }
 
-        private async Task<RestApplicationCommand> CreateGuildCommand(SlashCommandInfo info,
+        private async Task<RestApplicationCommand> CreateGuildCommand(TSlashInfo info,
             CancellationToken token = new CancellationToken())
         {
             if (info.GuildId == null)
