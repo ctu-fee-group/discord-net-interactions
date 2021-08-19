@@ -16,9 +16,12 @@ namespace Discord.Net.Interactions.Commands
         private readonly ICommandHolder<TSlashInfo> _commandsHolder;
         private readonly DiscordRestClient _client;
         private readonly CommandCache _cache;
+        private readonly ICommandPermissionsResolver<TSlashInfo> _commandPermissionsResolver;
 
-        public OneByOneCommandsRegistrator(ICommandHolder<TSlashInfo> commandsHolder, DiscordRestClient client)
+        public OneByOneCommandsRegistrator(ICommandHolder<TSlashInfo> commandsHolder,
+            ICommandPermissionsResolver<TSlashInfo> commandPermissionsResolver, DiscordRestClient client)
         {
+            _commandPermissionsResolver = commandPermissionsResolver;
             _commandsHolder = commandsHolder;
             _client = client;
             _cache = new CommandCache(client);
@@ -88,7 +91,6 @@ namespace Discord.Net.Interactions.Commands
         private async Task UnregisterCommandAsync(TSlashInfo info,
             CancellationToken token = new CancellationToken())
         {
-            //_permissions.UnregisterPermission(info.Permission);
             if (info.Command != null)
             {
                 await info.Command.DeleteAsync(new()
@@ -123,14 +125,14 @@ namespace Discord.Net.Interactions.Commands
 
         private async Task RefreshPermissions(TSlashInfo info, CancellationToken token = new CancellationToken())
         {
-            /*if (info.Command is RestGlobalCommand)
+            if (info.Command is RestGlobalCommand)
             {
                 return; // Global commands cannot have permissions (at least not in Discord.NET yet)
             }
             else if (info.Command is RestGuildCommand guildCommand)
             {
                 ApplicationCommandPermission[] permissions =
-                    await _permissions.Resolver.GetSlashCommandPermissionsAsync(info.Permission, token);
+                    await _commandPermissionsResolver.GetCommandPermissionsAsync(info, token);
                 GuildApplicationCommandPermission? commandPermission = await guildCommand.GetCommandPermission();
 
                 if (commandPermission == null || !commandPermission.MatchesPermissions(permissions))

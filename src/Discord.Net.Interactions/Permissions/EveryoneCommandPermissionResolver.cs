@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Discord.Net.Interactions.Abstractions;
 
@@ -13,17 +14,17 @@ namespace Discord.Net.Interactions.Permissions
         : ICommandPermissionsResolver<TSlashInfo>
         where TSlashInfo : SlashCommandInfo
     {
-        public Task<bool> IsForEveryone(TSlashInfo info)
+        public Task<bool> IsForEveryoneAsync(TSlashInfo info, CancellationToken cancellationToken)
         {
             return Task.FromResult(true);
         }
 
-        public Task<bool> HasPermission(IUser user, TSlashInfo info)
+        public Task<bool> HasPermissionAsync(IUser user, TSlashInfo info, CancellationToken cancellationToken)
         {
             return Task.FromResult(true);
         }
 
-        public Task<IEnumerable<ApplicationCommandPermission>> GetCommandPermissions(TSlashInfo info)
+        public Task<IEnumerable<ApplicationCommandPermission>> GetCommandPermissionsAsync(TSlashInfo info, CancellationToken cancellationToken)
         {
             return Task.FromResult(Enumerable.Empty<ApplicationCommandPermission>()); 
         }
