@@ -84,17 +84,6 @@ namespace Discord.Net.Interactions.CommandsInfo
         }
 
         /// <summary>
-        /// Set Christofel permission for the command
-        /// </summary>
-        /// <param name="permission"></param>
-        /// <returns></returns>
-        public TBuilder WithPermission(string permission)
-        {
-            Permission = permission;
-            return _builderInstance;
-        }
-
-        /// <summary>
         /// Set guild for the guild command to be added to, set the command non-global (guild)
         /// </summary>
         /// <param name="guildId"></param>
