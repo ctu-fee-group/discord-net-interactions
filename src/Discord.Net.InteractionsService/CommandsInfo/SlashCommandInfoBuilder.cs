@@ -105,7 +105,7 @@ namespace Discord.NET.InteractionsService.CommandsInfo
         /// </summary>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public SlashCommandInfo Build()
+        public virtual SlashCommandInfo Build()
         {
             if (DiscordNetBuilder == null || Permission == null || Handler == null)
             {
