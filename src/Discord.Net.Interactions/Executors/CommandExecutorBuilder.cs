@@ -14,6 +14,7 @@ namespace Discord.Net.Interactions.Executors
         private bool _defer, _threadPool;
 
         private ICommandExecutor? _base;
+        private ICommandPermissionsResolver<SlashCommandInfo>? _commandPermissionsResolver;
         private string? _deferMessage;
         private ILogger? _logger;
 
@@ -55,6 +56,17 @@ namespace Discord.Net.Interactions.Executors
             _base = executor;
             return _builderInstance;
         }
+        
+        /// <summary>
+        /// Adds permission check
+        /// </summary>
+        /// <param name="commandPermissionsResolver">Permission resolver</param>
+        /// <returns></returns>
+        public TBuilder WithPermissionCheck(ICommandPermissionsResolver<SlashCommandInfo> commandPermissionsResolver)
+        {
+            _commandPermissionsResolver = commandPermissionsResolver;
+            return _builderInstance;
+        }
 
         /// <summary>
         /// Add ThreadPoolCommandExecutor decorator
@@ -94,6 +106,16 @@ namespace Discord.Net.Interactions.Executors
                 }
                 
                 executor = new ThreadPoolCommandExecutor(_logger, executor);
+            }
+
+            if (_commandPermissionsResolver != null)
+            {
+                if (_logger is null)
+                {
+                    throw new InvalidOperationException("Logger must not be null");
+                }
+                
+                executor = new PermissionCheckCommandExecutor(_logger, _commandPermissionsResolver, executor);
             }
 
             if (_defer)
