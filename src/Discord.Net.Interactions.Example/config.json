@@ -1,0 +1,8 @@
+{
+  "Bot": {
+    "Token": "<BotToken>"
+  },
+  "Commands": {
+    "GuildId": <IdOfGuildToCreateCommands>
+  }
+}
