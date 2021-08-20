@@ -134,7 +134,8 @@ namespace Discord.Net.Interactions.Commands
                     (await _commandPermissionsResolver.GetCommandPermissionsAsync(info, token)).ToArray();
                 GuildApplicationCommandPermission? commandPermission = await guildCommand.GetCommandPermission();
 
-                if (commandPermission == null || !commandPermission.MatchesPermissions(permissions))
+                if (permissions.Length > 0 &&
+                    (commandPermission == null || !commandPermission.MatchesPermissions(permissions)))
                 {
                     await guildCommand.ModifyCommandPermissions(permissions);
                 }
