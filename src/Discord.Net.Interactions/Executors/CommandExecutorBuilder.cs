@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 namespace Discord.Net.Interactions.Executors
 {
     public sealed class CommandExecutorBuilder
-        : CommandExecutorBuilder<CommandExecutorBuilder<SlashCommandInfo>, SlashCommandInfo>
+        : CommandExecutorBuilder<CommandExecutorBuilder, SlashCommandInfo>
     { }
     
     public sealed class CommandExecutorBuilder<TSlashInfo>
