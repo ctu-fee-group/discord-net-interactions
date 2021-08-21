@@ -11,25 +11,25 @@ namespace Discord.Net.Interactions.Commands
     /// <summary>
     /// Registers all commands at once
     /// </summary>
-    public class BulkCommandsRegistrator<TSlashInfo> : ICommandsRegistrator<TSlashInfo>
-        where TSlashInfo : SlashCommandInfo
+    public class BulkCommandsRegistrator<TInteractionInfo> : ICommandsRegistrator<TInteractionInfo>
+        where TInteractionInfo : SlashCommandInfo
     {
         private readonly DiscordRestClient _client;
-        private readonly ICommandPermissionsResolver<TSlashInfo> _commandPermissionsResolver;
+        private readonly ICommandPermissionsResolver<TInteractionInfo> _commandPermissionsResolver;
 
         public BulkCommandsRegistrator(DiscordRestClient client,
-            ICommandPermissionsResolver<TSlashInfo> commandPermissionsResolver)
+            ICommandPermissionsResolver<TInteractionInfo> commandPermissionsResolver)
         {
             _client = client;
             _commandPermissionsResolver = commandPermissionsResolver;
         }
 
-        public Task RegisterCommandsAsync(ICommandHolder<TSlashInfo> holder, CancellationToken token = default)
+        public Task RegisterCommandsAsync(ICommandHolder<TInteractionInfo> holder, CancellationToken token = default)
         {
-            List<TSlashInfo> globalInfos = new List<TSlashInfo>();
-            Dictionary<ulong, List<TSlashInfo>> guildInfos = new Dictionary<ulong, List<TSlashInfo>>();
+            List<TInteractionInfo> globalInfos = new List<TInteractionInfo>();
+            Dictionary<ulong, List<TInteractionInfo>> guildInfos = new Dictionary<ulong, List<TInteractionInfo>>();
 
-            foreach (TSlashInfo info in holder.Commands.Select(x => x.Info))
+            foreach (TInteractionInfo info in holder.Interactions.Select(x => x.Info))
             {
                 if (info.Global)
                 {
@@ -42,9 +42,9 @@ namespace Discord.Net.Interactions.Commands
                         throw new InvalidOperationException("Guild id cannot be null when the command is not global");
                     }
 
-                    if (!guildInfos.TryGetValue((ulong)info.GuildId, out List<TSlashInfo>? specificGuildInfos))
+                    if (!guildInfos.TryGetValue((ulong)info.GuildId, out List<TInteractionInfo>? specificGuildInfos))
                     {
-                        specificGuildInfos = new List<TSlashInfo>();
+                        specificGuildInfos = new List<TInteractionInfo>();
                         guildInfos.Add((ulong)info.GuildId, specificGuildInfos);
                     }
 
@@ -54,7 +54,7 @@ namespace Discord.Net.Interactions.Commands
 
             List<Task> tasks = new List<Task>();
             tasks.Add(RegisterGlobalCommandsAsync(globalInfos, token));
-            foreach (KeyValuePair<ulong, List<TSlashInfo>> guildCommandData in guildInfos)
+            foreach (KeyValuePair<ulong, List<TInteractionInfo>> guildCommandData in guildInfos)
             {
                 tasks.Add(RegisterGuildCommandsAsync(guildCommandData.Key, guildCommandData.Value, token));
             }
@@ -62,7 +62,7 @@ namespace Discord.Net.Interactions.Commands
             return Task.WhenAll(tasks);
         }
 
-        private async Task RegisterGlobalCommandsAsync(List<TSlashInfo> globalInfos,
+        private async Task RegisterGlobalCommandsAsync(List<TInteractionInfo> globalInfos,
             CancellationToken cancellationToken)
         {
             IReadOnlyCollection<RestGlobalCommand>? registeredCommands = await _client.BulkOverwriteGlobalCommands(
@@ -71,7 +71,7 @@ namespace Discord.Net.Interactions.Commands
 
             foreach (RestGlobalCommand registeredCommand in registeredCommands)
             {
-                TSlashInfo matchedCommand =
+                TInteractionInfo matchedCommand =
                     globalInfos.First(x => x.BuiltCommand.Name == registeredCommand.Name);
 
                 matchedCommand.Command = registeredCommand;
@@ -81,7 +81,7 @@ namespace Discord.Net.Interactions.Commands
             // Persmissions of global commands are not supported currently
         }
 
-        private async Task RegisterGuildCommandsAsync(ulong guildId, List<TSlashInfo> guildInfos,
+        private async Task RegisterGuildCommandsAsync(ulong guildId, List<TInteractionInfo> guildInfos,
             CancellationToken cancellationToken)
         {
             IReadOnlyCollection<RestGuildCommand>? registeredCommands = await _client.BulkOverwriteGuildCommands(
@@ -93,7 +93,7 @@ namespace Discord.Net.Interactions.Commands
 
             foreach (RestGuildCommand registeredCommand in registeredCommands)
             {
-                TSlashInfo matchedCommand =
+                TInteractionInfo matchedCommand =
                     guildInfos.First(x => x.BuiltCommand.Name == registeredCommand.Name);
 
                 matchedCommand.Command = registeredCommand;
@@ -118,7 +118,7 @@ namespace Discord.Net.Interactions.Commands
             }
         }
 
-        public Task UnregisterCommandsAsync(ICommandHolder<TSlashInfo> holder, CancellationToken token = default)
+        public Task UnregisterCommandsAsync(ICommandHolder<TInteractionInfo> holder, CancellationToken token = default)
         {
             List<Task> tasks = new List<Task>();
             tasks.Add(_client.BulkOverwriteGlobalCommands(Array.Empty<SlashCommandCreationProperties>(),
@@ -133,15 +133,15 @@ namespace Discord.Net.Interactions.Commands
             return Task.WhenAll(tasks);
         }
 
-        public Task RefreshCommandsAndPermissionsAsync(ICommandHolder<TSlashInfo> holder,
+        public Task RefreshCommandsAndPermissionsAsync(ICommandHolder<TInteractionInfo> holder,
             CancellationToken token = default)
         {
             return RegisterCommandsAsync(holder, token);
         }
 
-        private IEnumerable<ulong> GetGuilds(ICommandHolder<TSlashInfo> holder)
+        private IEnumerable<ulong> GetGuilds(ICommandHolder<TInteractionInfo> holder)
         {
-            return holder.Commands
+            return holder.Interactions
                 .Select(x => x.Info.GuildId)
                 .Where(x => x is not null)
                 .Cast<ulong>()

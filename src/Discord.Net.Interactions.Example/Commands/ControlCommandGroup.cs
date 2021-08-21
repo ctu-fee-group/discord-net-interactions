@@ -22,10 +22,10 @@ namespace Discord.Net.Interactions.Example.Commands
             _stopBot = stopBot;
         }
 
-        private Task HandleQuit(SocketSlashCommand command, CancellationToken cancellationToken)
+        private Task HandleQuit(IDiscordInteraction interaction, CancellationToken cancellationToken)
         {
             _stopBot.Invoke();
-            return command.FollowupAsync("Goodbye");
+            return interaction.FollowupAsync("Goodbye");
         }
         
         public Task SetupCommandsAsync(ICommandHolder<SlashCommandInfo> holder, CancellationToken token = new CancellationToken())

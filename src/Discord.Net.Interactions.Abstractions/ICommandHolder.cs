@@ -7,16 +7,16 @@ namespace Discord.Net.Interactions.Abstractions
     /// </summary>
     /// <param name="Info"></param>
     /// <param name="Executor"></param>
-    public record HeldSlashCommand<TSlashInfo>(TSlashInfo Info, ICommandExecutor<TSlashInfo> Executor)
-        where TSlashInfo : SlashCommandInfo;
+    public record HeldInteraction<TInteractionInfo>(TInteractionInfo Info, ICommandExecutor<TInteractionInfo> Executor)
+        where TInteractionInfo : InteractionInfo;
     
     /// <summary>
     /// Interface supporting registration and holding of slash commands
     /// </summary>
-    public interface ICommandHolder<TSlashInfo>
-        where TSlashInfo : SlashCommandInfo
+    public interface ICommandHolder<TInteractionInfo>
+        where TInteractionInfo : InteractionInfo
     {
-        public IEnumerable<HeldSlashCommand<TSlashInfo>> Commands { get; }
+        public IEnumerable<HeldInteraction<TInteractionInfo>> Interactions { get; }
 
         /// <summary>
         /// Tries to get a slash command in list of commands by its name
@@ -24,7 +24,7 @@ namespace Discord.Net.Interactions.Abstractions
         /// </summary>
         /// <param name="name"></param>
         /// <returns>Slash command if it was found, otherwise null</returns>
-        public HeldSlashCommand<TSlashInfo>? TryGetSlashCommand(string name);
+        public HeldInteraction<TInteractionInfo>? TryMatch(IEnumerable<IInteractionMatcher> matchers, IDiscordInteraction interaction);
         
         /// <summary>
         /// Save command to collection
@@ -32,7 +32,7 @@ namespace Discord.Net.Interactions.Abstractions
         /// <param name="info"></param>
         /// <param name="executor"></param>
         /// <returns></returns>
-        public SlashCommandInfo AddCommand(TSlashInfo info, ICommandExecutor<TSlashInfo> executor);
+        public TInteractionInfo AddCommand(TInteractionInfo info, ICommandExecutor<TInteractionInfo> executor);
         
         /// <summary>
         /// Remove all commands from collection

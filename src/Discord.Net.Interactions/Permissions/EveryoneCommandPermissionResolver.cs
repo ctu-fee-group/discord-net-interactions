@@ -9,22 +9,22 @@ namespace Discord.Net.Interactions.Permissions
     /// <summary>
     /// Basic command permissions resolver that will simply allow everyone to use the command
     /// </summary>
-    /// <typeparam name="TSlashInfo"></typeparam>
-    public class EveryoneCommandPermissionResolver<TSlashInfo>
-        : ICommandPermissionsResolver<TSlashInfo>
-        where TSlashInfo : SlashCommandInfo
+    /// <typeparam name="TInteractionInfo"></typeparam>
+    public class EveryoneCommandPermissionResolver<TInteractionInfo>
+        : ICommandPermissionsResolver<TInteractionInfo>
+        where TInteractionInfo : InteractionInfo
     {
-        public Task<bool> IsForEveryoneAsync(TSlashInfo info, CancellationToken cancellationToken)
+        public Task<bool> IsForEveryoneAsync(TInteractionInfo info, CancellationToken cancellationToken)
         {
             return Task.FromResult(true);
         }
 
-        public Task<bool> HasPermissionAsync(IUser user, TSlashInfo info, CancellationToken cancellationToken)
+        public Task<bool> HasPermissionAsync(IUser user, TInteractionInfo info, CancellationToken cancellationToken)
         {
             return Task.FromResult(true);
         }
 
-        public Task<IEnumerable<ApplicationCommandPermission>> GetCommandPermissionsAsync(TSlashInfo info, CancellationToken cancellationToken)
+        public Task<IEnumerable<ApplicationCommandPermission>> GetCommandPermissionsAsync(TInteractionInfo info, CancellationToken cancellationToken)
         {
             return Task.FromResult(Enumerable.Empty<ApplicationCommandPermission>()); 
         }

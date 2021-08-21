@@ -21,11 +21,16 @@ namespace Discord.Net.Interactions.HandlerCreator
         /// <param name="getArguments">Function to obtain arguments for the invoker</param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public static InstancedSlashCommandHandler CreateHandler(EfficientInvoker invoker,
+        public static InstancedDiscordInteractionHandler CreateHandler(EfficientInvoker invoker,
             Func<SocketSlashCommandData, IEnumerable<object?>?> getArguments)
         {
-            return (instance, command, token) =>
+            return (instance, interaction, token) =>
             {
+                if (interaction is not SocketSlashCommand command)
+                {
+                    throw new InvalidOperationException("HandlerCreators can be used only for slash commands");
+                }
+                
                 List<object?> args = new() {command};
                 args.AddRange(getArguments(command.Data) ?? Enumerable.Empty<object?>());
                 args.Add(token);
@@ -47,11 +52,16 @@ namespace Discord.Net.Interactions.HandlerCreator
         /// <param name="getArguments">Function to obtain arguments for the delegate with</param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public static Func<object, SocketSlashCommand, T, CancellationToken, Task> CreateHandler<T>(EfficientInvoker invoker,
+        public static Func<object, IDiscordInteraction, T, CancellationToken, Task> CreateHandler<T>(EfficientInvoker invoker,
             Func<SocketSlashCommandData, T, IEnumerable<object?>?> getArguments)
         {
-            return (instance, command, helper, token) =>
+            return (instance, interaction, helper, token) =>
             {
+                if (interaction is not SocketSlashCommand command)
+                {
+                    throw new InvalidOperationException("HandlerCreators can be used only for slash commands");
+                }
+                
                 List<object?> args = new() {command};
                 args.AddRange(getArguments(command.Data, helper) ?? Enumerable.Empty<object?>());
                 args.Add(token);

@@ -8,20 +8,20 @@ namespace Discord.Net.Interactions.Executors
         : CommandExecutorBuilder<CommandExecutorBuilder, SlashCommandInfo>
     { }
     
-    public sealed class CommandExecutorBuilder<TSlashInfo>
-        : CommandExecutorBuilder<CommandExecutorBuilder<TSlashInfo>, TSlashInfo>
-        where TSlashInfo : SlashCommandInfo
+    public sealed class CommandExecutorBuilder<TInteractionInfo>
+        : CommandExecutorBuilder<CommandExecutorBuilder<TInteractionInfo>, TInteractionInfo>
+        where TInteractionInfo : InteractionInfo
     { }
 
-    public abstract class CommandExecutorBuilder<TBuilder, TSlashInfo>
-        where TBuilder : CommandExecutorBuilder<TBuilder, TSlashInfo>
-        where TSlashInfo : SlashCommandInfo
+    public abstract class CommandExecutorBuilder<TBuilder, TInteractionInfo>
+        where TBuilder : CommandExecutorBuilder<TBuilder, TInteractionInfo>
+        where TInteractionInfo : InteractionInfo
     {
         private readonly TBuilder _builderInstance;
         private bool _defer, _threadPool;
 
-        private ICommandExecutor<TSlashInfo>? _base;
-        private ICommandPermissionsResolver<TSlashInfo>? _commandPermissionsResolver;
+        private ICommandExecutor<TInteractionInfo>? _base;
+        private ICommandPermissionsResolver<TInteractionInfo>? _commandPermissionsResolver;
         private string? _deferMessage;
         private ILogger? _logger;
 
@@ -58,7 +58,7 @@ namespace Discord.Net.Interactions.Executors
         /// </summary>
         /// <param name="executor"></param>
         /// <returns></returns>
-        public TBuilder SetBaseExecutor(ICommandExecutor<TSlashInfo> executor)
+        public TBuilder SetBaseExecutor(ICommandExecutor<TInteractionInfo> executor)
         {
             _base = executor;
             return _builderInstance;
@@ -69,7 +69,7 @@ namespace Discord.Net.Interactions.Executors
         /// </summary>
         /// <param name="commandPermissionsResolver">Permission resolver</param>
         /// <returns></returns>
-        public TBuilder WithPermissionCheck(ICommandPermissionsResolver<TSlashInfo> commandPermissionsResolver)
+        public TBuilder WithPermissionCheck(ICommandPermissionsResolver<TInteractionInfo> commandPermissionsResolver)
         {
             _commandPermissionsResolver = commandPermissionsResolver;
             return _builderInstance;
@@ -91,7 +91,7 @@ namespace Discord.Net.Interactions.Executors
         /// <returns></returns>
         /// <exception cref="InvalidCastException"></exception>
         /// <exception cref="InvalidOperationException"></exception>
-        public virtual ICommandExecutor<TSlashInfo> Build()
+        public virtual ICommandExecutor<TInteractionInfo> Build()
         {
             if (_base is null)
             {
@@ -100,10 +100,10 @@ namespace Discord.Net.Interactions.Executors
                     throw new InvalidCastException("Logger must not be null");
                 }
                 
-                _base = new HandlerCommandExecutor<TSlashInfo>(_logger);
+                _base = new HandlerCommandExecutor<TInteractionInfo>(_logger);
             }
 
-            ICommandExecutor<TSlashInfo> executor = _base;
+            ICommandExecutor<TInteractionInfo> executor = _base;
 
             if (_threadPool)
             {
@@ -112,7 +112,7 @@ namespace Discord.Net.Interactions.Executors
                     throw new InvalidOperationException("Logger must not be null");
                 }
                 
-                executor = new ThreadPoolCommandExecutor<TSlashInfo>(_logger, executor);
+                executor = new ThreadPoolCommandExecutor<TInteractionInfo>(_logger, executor);
             }
 
             if (_commandPermissionsResolver != null)
@@ -122,12 +122,12 @@ namespace Discord.Net.Interactions.Executors
                     throw new InvalidOperationException("Logger must not be null");
                 }
                 
-                executor = new PermissionCheckCommandExecutor<TSlashInfo>(_logger, _commandPermissionsResolver, executor);
+                executor = new PermissionCheckCommandExecutor<TInteractionInfo>(_logger, _commandPermissionsResolver, executor);
             }
 
             if (_defer)
             {
-                executor = new AutoDeferCommandExecutor<TSlashInfo>(executor, _deferMessage);
+                executor = new AutoDeferCommandExecutor<TInteractionInfo>(executor, _deferMessage);
             }
 
             return executor;

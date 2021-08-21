@@ -7,41 +7,52 @@ namespace Discord.Net.Interactions.Commands
     /// <summary>
     /// Thread-safe implementation of CommandHolder using locks to achieve thread safety
     /// </summary>
-    public class ThreadSafeCommandHolder<TSlashInfo> : ICommandHolder<TSlashInfo>
-        where TSlashInfo : SlashCommandInfo
+    public class ThreadSafeCommandHolder<TInteractionInfo> : ICommandHolder<TInteractionInfo>
+        where TInteractionInfo : InteractionInfo
     {
-        private readonly List<HeldSlashCommand<TSlashInfo>> _commands;
+        private readonly List<HeldInteraction<TInteractionInfo>> _commands;
         private readonly object _commandsLock = new object();
-        
+
         public ThreadSafeCommandHolder()
         {
-            _commands = new List<HeldSlashCommand<TSlashInfo>>();
+            _commands = new List<HeldInteraction<TInteractionInfo>>();
         }
 
-        public IEnumerable<HeldSlashCommand<TSlashInfo>> Commands
+        public IEnumerable<HeldInteraction<TInteractionInfo>> Interactions
         {
             get
             {
                 lock (_commandsLock)
                 {
-                    return new List<HeldSlashCommand<TSlashInfo>>(_commands);
+                    return new List<HeldInteraction<TInteractionInfo>>(_commands);
                 }
             }
         }
 
-        public HeldSlashCommand<TSlashInfo>? TryGetSlashCommand(string name)
+        public HeldInteraction<TInteractionInfo>? TryMatch(IEnumerable<IInteractionMatcher> matchers,
+            IDiscordInteraction interaction)
         {
-            lock (_commandsLock)
+            List<HeldInteraction<TInteractionInfo>> heldInteractions = Interactions.ToList();
+
+            foreach (IInteractionMatcher matcher in matchers)
             {
-                return _commands.FirstOrDefault(x => x.Info.BuiltCommand.Name == name);
+                foreach (HeldInteraction<TInteractionInfo> heldInteraction in heldInteractions)
+                {
+                    if (matcher.Matches(interaction, heldInteraction.Info))
+                    {
+                        return heldInteraction;
+                    }
+                }
             }
+
+            return null;
         }
 
-        public SlashCommandInfo AddCommand(TSlashInfo info, ICommandExecutor<TSlashInfo> executor)
+        public TInteractionInfo AddCommand(TInteractionInfo info, ICommandExecutor<TInteractionInfo> executor)
         {
             lock (_commandsLock)
             {
-                _commands.Add(new HeldSlashCommand<TSlashInfo>(info, executor));
+                _commands.Add(new HeldInteraction<TInteractionInfo>(info, executor));
             }
 
             return info;

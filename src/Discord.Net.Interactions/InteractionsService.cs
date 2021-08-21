@@ -9,18 +9,18 @@ namespace Discord.Net.Interactions
     /// <summary>
     /// Service that will correctly initialize interactions handling along with initializing command groups
     /// </summary>
-    public class InteractionsService<TSlashInfo>
-        where TSlashInfo : SlashCommandInfo
+    public class InteractionsService<TInteractionInfo>
+        where TInteractionInfo : InteractionInfo
     {
-        protected readonly InteractionHandler<TSlashInfo> _interactionHandler;
-        protected readonly ICommandHolder<TSlashInfo> _commandHolder;
-        protected readonly ICommandsRegistrator<TSlashInfo> _commandRegistrator;
-        protected readonly ICommandsGroupProvider<TSlashInfo> _commandsGroupProvider;
+        protected readonly InteractionHandler<TInteractionInfo> _interactionHandler;
+        protected readonly ICommandHolder<TInteractionInfo> _commandHolder;
+        protected readonly ICommandsRegistrator<TInteractionInfo> _commandRegistrator;
+        protected readonly ICommandsGroupProvider<TInteractionInfo> _commandsGroupProvider;
         
-        public InteractionsService(InteractionHandler<TSlashInfo> interactionHandler,
-            ICommandHolder<TSlashInfo> commandHolder,
-            ICommandsRegistrator<TSlashInfo> commandsRegistrator,
-            ICommandsGroupProvider<TSlashInfo> commandsGroupProvider)
+        public InteractionsService(InteractionHandler<TInteractionInfo> interactionHandler,
+            ICommandHolder<TInteractionInfo> commandHolder,
+            ICommandsRegistrator<TInteractionInfo> commandsRegistrator,
+            ICommandsGroupProvider<TInteractionInfo> commandsGroupProvider)
         {
             _interactionHandler = interactionHandler;
             _commandHolder = commandHolder;

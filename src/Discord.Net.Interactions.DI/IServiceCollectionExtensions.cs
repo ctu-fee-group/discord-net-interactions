@@ -14,43 +14,43 @@ namespace Discord.Net.Interactions.DI
         /// Add permission resolver that will simply allow execution of the command to everyone
         /// </summary>
         /// <param name="collection"></param>
-        /// <typeparam name="TSlashInfo"></typeparam>
+        /// <typeparam name="TInteractionInfo"></typeparam>
         /// <returns></returns>
-        public static IServiceCollection AddEveryoneCommandPermissionResolver<TSlashInfo>(
+        public static IServiceCollection AddEveryoneCommandPermissionResolver<TInteractionInfo>(
             this IServiceCollection collection)
-            where TSlashInfo : SlashCommandInfo
+            where TInteractionInfo : InteractionInfo
         {
             return collection
-                .AddSingleton<ICommandPermissionsResolver<TSlashInfo>,
-                    EveryoneCommandPermissionResolver<TSlashInfo>>();
+                .AddSingleton<ICommandPermissionsResolver<TInteractionInfo>,
+                    EveryoneCommandPermissionResolver<TInteractionInfo>>();
         }
         
         /// <summary>
-        /// Add bulk command registrator <see cref="BulkCommandsRegistrator{TSlashInfo}"/>>
+        /// Add bulk command registrator <see cref="BulkCommandsRegistrator{TInteractionInfo}"/>>
         /// </summary>
         /// <param name="collection"></param>
-        /// <typeparam name="TSlashInfo"></typeparam>
+        /// <typeparam name="TInteractionInfo"></typeparam>
         /// <returns></returns>
-        public static IServiceCollection AddBulkCommandRegistrator<TSlashInfo>(
+        public static IServiceCollection AddBulkCommandRegistrator<TInteractionInfo>(
             this IServiceCollection collection)
-            where TSlashInfo : SlashCommandInfo
+            where TInteractionInfo : SlashCommandInfo
         {
             return collection
-                .AddSingleton<ICommandsRegistrator<TSlashInfo>, BulkCommandsRegistrator<TSlashInfo>>();
+                .AddSingleton<ICommandsRegistrator<TInteractionInfo>, BulkCommandsRegistrator<TInteractionInfo>>();
         }
         
         /// <summary>
-        /// Add one by one command registrator <see cref="AddOneByOneCommandRegistrator{TSlashInfo}"/>>
+        /// Add one by one command registrator <see cref="AddOneByOneCommandRegistrator{TInteractionInfo}"/>>
         /// </summary>
         /// <param name="collection"></param>
-        /// <typeparam name="TSlashInfo"></typeparam>
+        /// <typeparam name="TInteractionInfo"></typeparam>
         /// <returns></returns>
-        public static IServiceCollection AddOneByOneCommandRegistrator<TSlashInfo>(
+        public static IServiceCollection AddOneByOneCommandRegistrator<TInteractionInfo>(
             this IServiceCollection collection)
-            where TSlashInfo : SlashCommandInfo
+            where TInteractionInfo : SlashCommandInfo
         {
             return collection
-                .AddSingleton<ICommandsRegistrator<TSlashInfo>, OneByOneCommandsRegistrator<TSlashInfo>>();
+                .AddSingleton<ICommandsRegistrator<TInteractionInfo>, OneByOneCommandsRegistrator<TInteractionInfo>>();
         }
 
         /// <summary>
@@ -59,25 +59,25 @@ namespace Discord.Net.Interactions.DI
         /// <param name="collection"></param>
         /// <param name="configure">Function that is to make code more readable, it is invoken with the same collection that was passed to the function. It should register CommandGroups</param>
         /// <returns></returns>
-        public static IServiceCollection AddDefaultInteractionService<TSlashInfo>(this IServiceCollection collection,
+        public static IServiceCollection AddDefaultInteractionService<TInteractionInfo>(this IServiceCollection collection,
             Action<IServiceCollection>? configure = null)
-            where TSlashInfo : SlashCommandInfo
+            where TInteractionInfo : InteractionInfo
         {
             collection
-                .AddOptions<DICommandGroupsProvider<TSlashInfo>>();
+                .AddOptions<DICommandGroupsProvider<TInteractionInfo>>();
 
             collection
-                .AddSingleton<ICommandsGroupProvider<TSlashInfo>>(p =>
+                .AddSingleton<ICommandsGroupProvider<TInteractionInfo>>(p =>
                 {
-                    DICommandGroupsProvider<TSlashInfo> provider =
-                        p.GetRequiredService<IOptions<DICommandGroupsProvider<TSlashInfo>>>().Value;
+                    DICommandGroupsProvider<TInteractionInfo> provider =
+                        p.GetRequiredService<IOptions<DICommandGroupsProvider<TInteractionInfo>>>().Value;
                     provider.Provider = p;
 
                     return provider;
                 })
-                .AddSingleton<ICommandHolder<TSlashInfo>, ThreadSafeCommandHolder<TSlashInfo>>()
-                .AddSingleton<InteractionHandler<TSlashInfo>>()
-                .AddSingleton<InteractionsService<TSlashInfo>>();
+                .AddSingleton<ICommandHolder<TInteractionInfo>, ThreadSafeCommandHolder<TInteractionInfo>>()
+                .AddSingleton<InteractionHandler<TInteractionInfo>>()
+                .AddSingleton<InteractionsService<TInteractionInfo>>();
 
             configure?.Invoke(collection);
 
@@ -89,13 +89,13 @@ namespace Discord.Net.Interactions.DI
         /// </summary>
         /// <param name="collection"></param>
         /// <returns></returns>
-        public static IServiceCollection AddCommandGroup<TGroup, TSlashInfo>(this IServiceCollection collection)
-            where TGroup : class, ICommandGroup<TSlashInfo>
-            where TSlashInfo : SlashCommandInfo
+        public static IServiceCollection AddCommandGroup<TGroup, TInteractionInfo>(this IServiceCollection collection)
+            where TGroup : class, ICommandGroup<TInteractionInfo>
+            where TInteractionInfo : InteractionInfo
         {
             collection.AddSingleton<TGroup>();
 
-            collection.Configure<DICommandGroupsProvider<TSlashInfo>>(handler =>
+            collection.Configure<DICommandGroupsProvider<TInteractionInfo>>(handler =>
                 handler.RegisterGroupType(typeof(TGroup)));
 
             return collection;

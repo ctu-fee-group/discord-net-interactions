@@ -28,34 +28,34 @@ namespace Discord.Net.Interactions.Example.Commands
             _options = options.Value;
         }
 
-        private Task HandlePing(SocketSlashCommand command, IMentionable mentionable, CancellationToken cancellationToken)
+        private Task HandlePing(IDiscordInteraction interaction, IMentionable mentionable, CancellationToken cancellationToken)
         {
-            return command
+            return interaction
                 .RespondAsync($"Pong {mentionable.Mention}");
         }
 
-        private async Task HandleFeedbackPositive(SocketSlashCommand command, Feedback feedback, CancellationToken cancellationToken)
+        private async Task HandleFeedbackPositive(IDiscordInteraction interaction, Feedback feedback, CancellationToken cancellationToken)
         {
-            await command.RespondAsync("Thank you for your positive feedback!", ephemeral: true);
-            await command.FollowupAsync($"User {command.User.Mention} left a feedback {feedback}");
+            await interaction.RespondAsync("Thank you for your positive feedback!", ephemeral: true);
+            await interaction.FollowupAsync($"User {command.User.Mention} left a feedback {feedback}");
         }
         
-        private async Task HandleFeedbackNegative(SocketSlashCommand command, Feedback feedback, CancellationToken cancellationToken)
+        private async Task HandleFeedbackNegative(IDiscordInteraction interaction, Feedback feedback, CancellationToken cancellationToken)
         {
-            await command.RespondAsync("Thank you for your negative feedback!", ephemeral: true);
-            await command.FollowupAsync($"User {command.User.Mention} left a feedback {feedback}");
+            await interaction.RespondAsync("Thank you for your negative feedback!", ephemeral: true);
+            await interaction.FollowupAsync($"User {command.User.Mention} left a feedback {feedback}");
         }
         
         public Task SetupCommandsAsync(ICommandHolder<SlashCommandInfo> holder, CancellationToken token = new CancellationToken())
         {
             // Create handler for ping command calling correctly HandlePing method
-            SlashCommandHandler pingHandler = new PlainCommandHandlerCreator()
+            DiscordInteractionHandler pingHandler = new PlainCommandHandlerCreator()
                 .CreateHandlerForCommand((CommandDelegate<IMentionable>)HandlePing);
 
             // Create handler for /feedback positive/negative sub command
             // Calling HandleFeedbackPositive for /feedback positive
             // and HandleFeedbackNegative for /feedback negative
-            SlashCommandHandler feedbackHandler = new SubCommandHandlerCreator()
+            DiscordInteractionHandler feedbackHandler = new SubCommandHandlerCreator()
                 .CreateHandlerForCommand(
                     ("positive", (CommandDelegate<Feedback>)HandleFeedbackPositive),
                     ("negative", (CommandDelegate<Feedback>)HandleFeedbackNegative));

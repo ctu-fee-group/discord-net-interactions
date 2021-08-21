@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord.Net.Interactions.Abstractions;
+using Discord.Net.Interactions.InteractionMatchers;
 using Discord.WebSocket;
 
 namespace Discord.Net.Interactions.Handlers
@@ -12,15 +13,19 @@ namespace Discord.Net.Interactions.Handlers
     /// <remarks>
     /// Exposes basic command handling helper commands
     /// </remarks>
-    public class InteractionHandler<TSlashInfo> : IDisposable
-        where TSlashInfo : SlashCommandInfo
+    public class InteractionHandler<TInteractionInfo> : IDisposable
+        where TInteractionInfo : InteractionInfo
     {
-        protected readonly ICommandHolder<TSlashInfo> _commandsHolder;
+        protected readonly ICommandHolder<TInteractionInfo> _commandsHolder;
         protected readonly CancellationTokenSource _commandsTokenSource;
         protected readonly DiscordSocketClient _client;
-        
-        public InteractionHandler(DiscordSocketClient client, ICommandHolder<TSlashInfo> commandsHolder)
+
+        protected readonly IInteractionMatcherProvider _interactionMatcherProvider;
+
+        public InteractionHandler(DiscordSocketClient client, ICommandHolder<TInteractionInfo> commandsHolder,
+            IInteractionMatcherProvider matcherProvider)
         {
+            _interactionMatcherProvider = matcherProvider;
             _commandsTokenSource = new CancellationTokenSource();
             _commandsHolder = commandsHolder;
             _client = client;
@@ -33,35 +38,31 @@ namespace Discord.Net.Interactions.Handlers
         {
             _client.InteractionCreated += HandleInteractionCreated;
         }
-        
+
         /// <summary>
         /// Handle InteractionCreated event
         /// </summary>
         /// <remarks>
         /// Calls HandleCommand if the interaction is a SocketSlashCommand and found in commands collection
         /// </remarks>
-        /// <param name="arg"></param>
+        /// <param name="interaction"></param>
         /// <returns></returns>
-        protected virtual Task HandleInteractionCreated(SocketInteraction arg)
+        protected virtual Task HandleInteractionCreated(SocketInteraction interaction)
         {
-            if (arg is SocketSlashCommand command)
+            HeldInteraction<TInteractionInfo>? heldCommand =
+                _commandsHolder.TryMatch(_interactionMatcherProvider.GetMatchers(), interaction);
+
+            if (heldCommand != null)
             {
-                HeldSlashCommand<TSlashInfo>? heldCommand = _commandsHolder.TryGetSlashCommand(command.Data.Name);
-
-                if (heldCommand != null)
-                {
-                    return heldCommand.Executor.TryExecuteCommand(
-                        heldCommand.Info,
-                        command,
-                        _commandsTokenSource.Token);
-                }
-
-                return Task.CompletedTask;
+                return heldCommand.Executor.TryExecuteInteraction(
+                    heldCommand.Info,
+                    interaction,
+                    _commandsTokenSource.Token);
             }
 
             return Task.CompletedTask;
         }
-        
+
         /// <summary>
         /// Registers commands and events
         /// </summary>
@@ -79,7 +80,7 @@ namespace Discord.Net.Interactions.Handlers
         public Task StopAsync(CancellationToken token = new CancellationToken())
         {
             _client.InteractionCreated -= HandleInteractionCreated;
-            
+
             _commandsTokenSource.Cancel();
             token.ThrowIfCancellationRequested();
             return Task.CompletedTask;

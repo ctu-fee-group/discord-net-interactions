@@ -14,19 +14,19 @@ namespace Discord.Net.Interactions.HandlerCreator
     /// </summary>
     public class PlainCommandHandlerCreator : ICommandHandlerCreator<string>
     {
-        public SlashCommandHandler CreateHandlerForCommand(IEnumerable<(Func<string, bool>, Delegate)> matchers)
+        public DiscordInteractionHandler CreateHandlerForCommand(IEnumerable<(Func<string, bool>, Delegate)> matchers)
         {
             var valueTuples = matchers as (Func<string, bool>, Delegate)[] ?? matchers.ToArray();
 
             Delegate matchedDelegate = GetMatched<Delegate>(valueTuples);
-            InstancedSlashCommandHandler instancedHandler = CommandHandlerCreatorUtils.CreateHandler(
+            InstancedDiscordInteractionHandler instancedHandler = CommandHandlerCreatorUtils.CreateHandler(
                 EfficientInvoker.ForDelegate(matchedDelegate),
                 (data => CommandHandlerCreatorUtils.GetParametersFromOptions(matchedDelegate.Method, data.Options)));
 
             return (command, token) => instancedHandler(matchedDelegate, command, token);
         }
 
-        public InstancedSlashCommandHandler CreateInstancedHandlerForCommand(
+        public InstancedDiscordInteractionHandler CreateInstancedHandlerForCommand(
             IEnumerable<(Func<string, bool>, MethodInfo)> matchers)
         {
             var valueTuples = matchers as (Func<string, bool>, MethodInfo)[] ?? matchers.ToArray();
@@ -48,7 +48,7 @@ namespace Discord.Net.Interactions.HandlerCreator
             return valueTuples.FirstOrDefault().Item2;
         }
 
-        private InstancedSlashCommandHandler GetHandler(InstancedSlashCommandHandler handler)
+        private InstancedDiscordInteractionHandler GetHandler(InstancedDiscordInteractionHandler handler)
         {
             return (instance, command, token) =>
             {

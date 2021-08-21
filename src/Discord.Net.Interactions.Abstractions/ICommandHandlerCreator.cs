@@ -7,20 +7,20 @@ using Discord.WebSocket;
 
 namespace Discord.Net.Interactions.Abstractions
 {
-    public delegate Task CommandDelegate(SocketSlashCommand command, CancellationToken token);
+    public delegate Task CommandDelegate(IDiscordInteraction interaction, CancellationToken token);
 
-    public delegate Task CommandDelegate<in T1>(SocketSlashCommand command, T1 arg1, CancellationToken token);
+    public delegate Task CommandDelegate<in T1>(IDiscordInteraction interaction, T1 arg1, CancellationToken token);
 
-    public delegate Task CommandDelegate<in T1, in T2>(SocketSlashCommand command, T1 arg1, T2 arg2,
+    public delegate Task CommandDelegate<in T1, in T2>(IDiscordInteraction interaction, T1 arg1, T2 arg2,
         CancellationToken token);
 
-    public delegate Task CommandDelegate<in T1, in T2, in T3>(SocketSlashCommand command, T1 arg1, T2 arg2, T3 arg3,
+    public delegate Task CommandDelegate<in T1, in T2, in T3>(IDiscordInteraction interaction, T1 arg1, T2 arg2, T3 arg3,
         CancellationToken token);
 
-    public delegate Task CommandDelegate<in T1, in T2, in T3, in T4>(SocketSlashCommand command, T1 arg1, T2 arg2,
+    public delegate Task CommandDelegate<in T1, in T2, in T3, in T4>(IDiscordInteraction interaction, T1 arg1, T2 arg2,
         T3 arg3, T4 arg4, CancellationToken token);
 
-    public delegate Task CommandDelegate<in T1, in T2, in T3, in T4, T5>(SocketSlashCommand command, T1 arg1, T2 arg2,
+    public delegate Task CommandDelegate<in T1, in T2, in T3, in T4, T5>(IDiscordInteraction interaction, T1 arg1, T2 arg2,
         T3 arg3, T4 arg4, T5 arg5, CancellationToken token);
 
     /// <summary>
@@ -34,7 +34,7 @@ namespace Discord.Net.Interactions.Abstractions
         /// </summary>
         /// <param name="matchers">List of matchers that specify what function is matched given conditions</param>
         /// <returns></returns>
-        public SlashCommandHandler CreateHandlerForCommand(
+        public DiscordInteractionHandler CreateHandlerForCommand(
             IEnumerable<(Func<TMatcherType, bool>, Delegate)> matchers);
 
         //InstancedSlashCommandHandle
@@ -48,7 +48,7 @@ namespace Discord.Net.Interactions.Abstractions
         /// </remarks>
         /// <param name="matchers">List of matchers that specify what function is matched given conditions</param>
         /// <returns></returns>
-        public InstancedSlashCommandHandler CreateInstancedHandlerForCommand(
+        public InstancedDiscordInteractionHandler CreateInstancedHandlerForCommand(
             IEnumerable<(Func<TMatcherType, bool>, MethodInfo)> matchers);
     }
 }
