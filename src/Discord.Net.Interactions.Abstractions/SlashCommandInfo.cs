@@ -6,9 +6,17 @@ using Discord.WebSocket;
 
 namespace Discord.Net.Interactions.Abstractions
 {
+    /// <summary>
+    /// Handler function of slash commands without instance, <see cref="InstancedSlashCommandHandler"/> for
+    /// command handler that can be invoked with different instances
+    /// </summary>
     public delegate Task SlashCommandHandler(SocketSlashCommand command,
         CancellationToken token = new CancellationToken());
 
+    /// <summary>
+    /// Handler function of slash commands supporting invoking with different class instances
+    /// for holding context per command
+    /// </summary>
     public delegate Task InstancedSlashCommandHandler(object classInstance, SocketSlashCommand command,
         CancellationToken token = new CancellationToken());
 

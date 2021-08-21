@@ -12,14 +12,13 @@ namespace Discord.Net.Interactions.HandlerCreator
 {
     public class CommandHandlerCreatorUtils
     {
-
         /// <summary>
-        /// Create SlashCommandHandler from given Delegate.
-        /// It should have the following signature: SocketSlashCommand, *arguments for the command with matching names*, CancellationToken
+        /// Create SlashCommandHandler from given EfficientInvoker.
+        /// It should have the following signature: SocketSlashCommand, *arguments for the command with matching names*, CancellationToken.
         /// Uses <see cref="EfficientInvoker"/> for invoking the delegate faster.
         /// </summary>
-        /// <param name="function">What function to call during handling</param>
-        /// <param name="getArguments">Function to obtain arguments for the delegate with</param>
+        /// <param name="invoker">What invoker will be used to invoke the command</param>
+        /// <param name="getArguments">Function to obtain arguments for the invoker</param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
         public static InstancedSlashCommandHandler CreateHandler(EfficientInvoker invoker,
@@ -36,11 +35,15 @@ namespace Discord.Net.Interactions.HandlerCreator
         }
 
         /// <summary>
-        /// Create SlashCommandHandler from given Delegate.
+        /// Create SlashCommandHandler from given EfficientInvoker.
         /// It should have the following signature: SocketSlashCommand, *arguments for the command with matching names*, CancellationToken
         /// Uses <see cref="EfficientInvoker"/> for invoking the delegate faster.
         /// </summary>
-        /// <param name="function">What function to call during handling</param>
+        /// <remarks>
+        /// This function is different from non-generic CreateHandler, because getArguments function accepts generic helper argument
+        /// that can be used for storing anything important for retrieving arguments
+        /// </remarks>
+        /// <param name="invoker">What invoker will be used to invoke the command</param>
         /// <param name="getArguments">Function to obtain arguments for the delegate with</param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
@@ -57,6 +60,13 @@ namespace Discord.Net.Interactions.HandlerCreator
             };
         }
 
+        /// <summary>
+        /// Matches positions of options of command to method parameters.
+        /// Parameters will be matched to the names of the options of the command.
+        /// </summary>
+        /// <param name="methodInfo"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
         public static IEnumerable<object?> GetParametersFromOptions(MethodInfo methodInfo,
             IEnumerable<SocketSlashCommandDataOption>? options)
         {

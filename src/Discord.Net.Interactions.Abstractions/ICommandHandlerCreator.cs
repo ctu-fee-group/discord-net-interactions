@@ -41,8 +41,12 @@ namespace Discord.Net.Interactions.Abstractions
         //InstancedSlashCommandHandle
 
         /// <summary>
-        /// Creates SlashCommandHandler for given matches
+        /// Creates InstancedSlashCommandHandler for given matches
         /// </summary>
+        /// <remarks>
+        /// Instanced slash command handler can be used to invoke command with different class instance
+        /// every time
+        /// </remarks>
         /// <param name="matchers">List of matchers that specify what function is matched given conditions</param>
         /// <returns></returns>
         public InstancedSlashCommandHandler CreateInstancedHandlerForCommand(

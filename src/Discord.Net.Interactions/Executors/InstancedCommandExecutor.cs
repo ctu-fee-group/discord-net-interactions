@@ -8,12 +8,19 @@ using Microsoft.Extensions.Logging;
 
 namespace Discord.Net.Interactions.Executors
 {
+    /// <summary>
+    /// Execute InstancedHandler of slash command info.
+    /// Delegate to obtain instance with will be passed to the constructor.
+    /// </summary>
+    /// <typeparam name="TSlashInfo"></typeparam>
     public class InstancedCommandExecutor<TSlashInfo> : ICommandExecutor<TSlashInfo>
         where TSlashInfo : SlashCommandInfo
     {
         private readonly ILogger _logger;
         private Func<SlashCommandInfo, SocketSlashCommand, CancellationToken, object> _getInstance;
-
+        
+        /// <param name="logger">Logger to log errors with</param>
+        /// <param name="getInstance">Obtain new instance for execution of the command</param>
         public InstancedCommandExecutor(ILogger logger,
             Func<SlashCommandInfo, SocketSlashCommand, CancellationToken, object> getInstance)
         {
