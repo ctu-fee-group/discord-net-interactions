@@ -27,8 +27,7 @@ namespace Discord.Net.Interactions.Abstractions
     /// Creator of SlashCommandHandler different types may be used for subcommands or custom matching
     /// </summary>
     /// <typeparam name="TMatcherType">Type that will be passed to the matcher as argument</typeparam>
-    /// <typeparam name="TDelegateType">Type of the delegate that will be called as the handler</typeparam>
-    public interface ICommandHandlerCreator<TMatcherType, TDelegateType>
+    public interface ICommandHandlerCreator<TMatcherType>
     {
         /// <summary>
         /// Creates SlashCommandHandler for given matches
@@ -36,7 +35,7 @@ namespace Discord.Net.Interactions.Abstractions
         /// <param name="matchers">List of matchers that specify what function is matched given conditions</param>
         /// <returns></returns>
         public SlashCommandHandler CreateHandlerForCommand(
-            IEnumerable<(Func<TMatcherType, bool>, TDelegateType)> matchers);
+            IEnumerable<(Func<TMatcherType, bool>, Delegate)> matchers);
 
         //InstancedSlashCommandHandle
 

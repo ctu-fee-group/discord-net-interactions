@@ -18,7 +18,7 @@ namespace Discord.Net.Interactions.HandlerCreator
     /// So for example, if we have /command subcmd subsubcmd, then
     /// matcher for "subcmd subsubcmd" should be present
     /// </summary>
-    public class SubCommandHandlerCreator : ICommandHandlerCreator<string, Delegate>
+    public class SubCommandHandlerCreator : ICommandHandlerCreator<string>
     {
         private HandlerMatcher<T> GetMatchedHandler<T>(List<HandlerMatcher<T>> matchers, SocketSlashCommand command,
             out SocketSlashCommandDataOption? outOption, CancellationToken token)

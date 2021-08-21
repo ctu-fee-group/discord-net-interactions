@@ -12,7 +12,7 @@ namespace Discord.Net.Interactions.HandlerCreator
     /// Creates SlashCommandHandler for command without subcommands.
     /// It should receive only 1 matcher and that should always match
     /// </summary>
-    public class PlainCommandHandlerCreator : ICommandHandlerCreator<string, Delegate>
+    public class PlainCommandHandlerCreator : ICommandHandlerCreator<string>
     {
         public SlashCommandHandler CreateHandlerForCommand(IEnumerable<(Func<string, bool>, Delegate)> matchers)
         {
