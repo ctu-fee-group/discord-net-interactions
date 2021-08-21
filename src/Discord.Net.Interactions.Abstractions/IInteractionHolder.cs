@@ -29,7 +29,15 @@ namespace Discord.Net.Interactions.Abstractions
         /// <param name="info"></param>
         /// <param name="executor"></param>
         /// <returns></returns>
-        public InteractionInfo AddInteraction(InteractionInfo info, IInteractionExecutor executor);
+        public void AddInteraction(InteractionInfo info, IInteractionExecutor executor);
+        
+        /// <summary>
+        /// Remove interaction
+        /// </summary>
+        /// <param name="info"></param>
+        /// <param name="executor"></param>
+        /// <returns></returns>
+        public void RemoveInteraction(InteractionInfo info);
         
         /// <summary>
         /// Remove all commands from collection

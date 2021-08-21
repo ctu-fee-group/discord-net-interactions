@@ -47,14 +47,20 @@ namespace Discord.Net.Interactions.Commands
             return null;
         }
 
-        public InteractionInfo AddInteraction(InteractionInfo info, IInteractionExecutor executor)
+        public void AddInteraction(InteractionInfo info, IInteractionExecutor executor)
         {
             lock (_commandsLock)
             {
                 _commands.Add(new HeldInteraction(info, executor));
             }
+        }
 
-            return info;
+        public void RemoveInteraction(InteractionInfo info)
+        {
+            lock (_commandsLock)
+            {
+                _commands.RemoveAll(x => x.Info == info);
+            }
         }
 
         public void RemoveCommands()
