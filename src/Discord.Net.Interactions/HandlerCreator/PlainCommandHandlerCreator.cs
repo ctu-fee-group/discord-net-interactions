@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
 using Discord.Net.Interactions.Abstractions;
+using Discord.Net.Interactions.Reflection;
 
 namespace Discord.Net.Interactions.HandlerCreator
 {
@@ -9,28 +12,48 @@ namespace Discord.Net.Interactions.HandlerCreator
     /// Creates SlashCommandHandler for command without subcommands.
     /// It should receive only 1 matcher and that should always match
     /// </summary>
-    public class PlainCommandHandlerCreator : ICommandHandlerCreator<string, Delegate>
+    public class PlainCommandHandlerCreator : ICommandHandlerCreator<string>
     {
         public SlashCommandHandler CreateHandlerForCommand(IEnumerable<(Func<string, bool>, Delegate)> matchers)
         {
             var valueTuples = matchers as (Func<string, bool>, Delegate)[] ?? matchers.ToArray();
-            if (valueTuples.Count() != 1)
+
+            Delegate matchedDelegate = GetMatched<Delegate>(valueTuples);
+            InstancedSlashCommandHandler instancedHandler = CommandHandlerCreatorUtils.CreateHandler(
+                EfficientInvoker.ForDelegate(matchedDelegate),
+                (data => CommandHandlerCreatorUtils.GetParametersFromOptions(matchedDelegate.Method, data.Options)));
+
+            return (command, token) => instancedHandler(matchedDelegate, command, token);
+        }
+
+        public InstancedSlashCommandHandler CreateInstancedHandlerForCommand(
+            IEnumerable<(Func<string, bool>, MethodInfo)> matchers)
+        {
+            var valueTuples = matchers as (Func<string, bool>, MethodInfo)[] ?? matchers.ToArray();
+            MethodInfo matchedMethod = GetMatched<MethodInfo>(valueTuples);
+            EfficientInvoker invoker = EfficientInvoker.ForMethod(matchedMethod);
+
+            return GetHandler(CommandHandlerCreatorUtils.CreateHandler(invoker,
+                (data => CommandHandlerCreatorUtils.GetParametersFromOptions(matchedMethod, data.Options))));
+        }
+
+        private T GetMatched<T>((Func<string, bool>, T)[] valueTuples)
+        {
+            if (valueTuples.Length != 1)
             {
                 throw new InvalidOperationException(
                     "PlainCommandHandlerCreator can handle only one matcher that is always true");
             }
 
-            var matcher = valueTuples.FirstOrDefault();
-            return GetHandler(CommandHandlerCreatorUtils.CreateHandler(matcher.Item2,
-                (data => CommandHandlerCreatorUtils.GetParametersFromOptions(matcher.Item2, data.Options))));
+            return valueTuples.FirstOrDefault().Item2;
         }
 
-        private SlashCommandHandler GetHandler(SlashCommandHandler handler)
+        private InstancedSlashCommandHandler GetHandler(InstancedSlashCommandHandler handler)
         {
-            return (command, token) =>
+            return (instance, command, token) =>
             {
                 token.ThrowIfCancellationRequested();
-                return handler(command, token);
+                return handler(instance, command, token);
             };
         }
     }

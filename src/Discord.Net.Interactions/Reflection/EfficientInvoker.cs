@@ -31,7 +31,7 @@ namespace Discord.Net.Interactions.Reflection
         {
             return _func;
         }
-        
+
         public static Func<object[], object> ForConstructor(ConstructorInfo constructor)
         {
             if (constructor == null)
@@ -63,6 +63,26 @@ namespace Discord.Net.Interactions.Reflection
             });
         }
 
+        public static EfficientInvoker ForMethod(MethodInfo methodInfo)
+        {
+            if (methodInfo == null)
+                throw new ArgumentNullException(nameof(methodInfo));
+
+            if (methodInfo.DeclaringType is null)
+            {
+                throw new InvalidOperationException("DeclaringType cannot be null");
+            }
+            
+            var key = new MethodKey(
+                methodInfo.DeclaringType,
+                methodInfo.Name);
+            return MethodToWrapperMap.GetOrAdd(key, k =>
+            {
+                var wrapper = CreateMethodWrapper(k.Type, methodInfo, false);
+                return new EfficientInvoker(wrapper);
+            });
+        }
+
         public static EfficientInvoker ForMethod(Type type, string methodName)
         {
             if (type == null)
@@ -79,7 +99,7 @@ namespace Discord.Net.Interactions.Reflection
                 {
                     throw new InvalidOperationException();
                 }
-                
+
                 var wrapper = CreateMethodWrapper(k.Type, method, false);
                 return new EfficientInvoker(wrapper);
             });
@@ -119,7 +139,8 @@ namespace Discord.Net.Interactions.Reflection
             return task;
         }
 
-        private static Func<object?, object?[]?, object?> CreateMethodWrapper(Type type, MethodInfo method, bool isDelegate)
+        private static Func<object?, object?[]?, object?> CreateMethodWrapper(Type type, MethodInfo method,
+            bool isDelegate)
         {
             CreateParamsExpressions(method, out ParameterExpression argsExp, out Expression[] paramsExps);
 
@@ -130,7 +151,7 @@ namespace Discord.Net.Interactions.Reflection
                 : Expression.Call(castTargetExp, method, paramsExps);
 
             LambdaExpression lambdaExp;
-            
+
             if (method.ReturnType != typeof(void))
             {
                 var resultExp = Expression.Convert(invokeExp, typeof(object));
@@ -147,7 +168,8 @@ namespace Discord.Net.Interactions.Reflection
             return (Func<object?, object?[]?, object?>)lambda;
         }
 
-        private static void CreateParamsExpressions(MethodBase method, out ParameterExpression argsExp, out Expression[] paramsExps)
+        private static void CreateParamsExpressions(MethodBase method, out ParameterExpression argsExp,
+            out Expression[] paramsExps)
         {
             var parameters = method.GetParameters().Select(x => x.ParameterType).ToList();
 
@@ -161,7 +183,7 @@ namespace Discord.Net.Interactions.Reflection
                 paramsExps[i] = Expression.Convert(argExp, parameters[i]);
             }
         }
-        
+
         private static Func<object?, object?[]?, object?> CreatePropertyWrapper(Type type, string propertyName)
         {
             var property = type.GetRuntimeProperty(propertyName);
@@ -169,7 +191,7 @@ namespace Discord.Net.Interactions.Reflection
             {
                 throw new InvalidOperationException();
             }
-            
+
             var targetExp = Expression.Parameter(typeof(object), "target");
             var argsExp = Expression.Parameter(typeof(object[]), "args");
             var castArgExp = Expression.Convert(targetExp, type);
@@ -177,7 +199,7 @@ namespace Discord.Net.Interactions.Reflection
             var castPropExp = Expression.Convert(propExp, typeof(object));
             var lambdaExp = Expression.Lambda(castPropExp, targetExp, argsExp);
             var lambda = lambdaExp.Compile();
-            return (Func<object?, object?[]?, object?>) lambda;
+            return (Func<object?, object?[]?, object?>)lambda;
         }
 
         private class MethodKeyComparer : IEqualityComparer<MethodKey>

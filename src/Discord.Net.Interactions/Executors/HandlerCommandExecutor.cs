@@ -24,6 +24,11 @@ namespace Discord.Net.Interactions.Executors
         {
             try
             {
+                if (info.Handler is null)
+                {
+                    throw new InvalidOperationException("HandlerCommandExecutor can handle only non-instanced commands");
+                }
+                
                 _logger.LogInformation($@"Handling command /{command.Data.Name} executed by {command.User.Mention} ({command.User})");
                 await info.Handler(command, token);
             }
