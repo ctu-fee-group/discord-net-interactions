@@ -8,12 +8,24 @@ namespace Discord.Net.Interactions.CommandsInfo
     {
         public override SlashCommandInfo Build()
         {
-            if (DiscordNetBuilder == null || Handler == null)
+            if (DiscordNetBuilder is null)
             {
-                throw new InvalidOperationException("DiscordNetBuilder, Permission and Handler must be set");
+                throw new InvalidOperationException("DiscordNetBuilder must be set");
             }
 
-            SlashCommandInfo info = new SlashCommandInfo(DiscordNetBuilder, Handler, Global, GuildId);
+            SlashCommandInfo info;
+            if (Handler is not null)
+            {
+                info = new SlashCommandInfo(DiscordNetBuilder, Handler, Global, GuildId);
+            }
+            else if (InstancedHandler is not null)
+            {
+                info = new SlashCommandInfo(DiscordNetBuilder, InstancedHandler, Global, GuildId);
+            }
+            else
+            {
+                throw new InvalidOperationException("At least one of Handler, InstancedHandler must be set");
+            }
 
             return info;
         }
@@ -46,6 +58,11 @@ namespace Discord.Net.Interactions.CommandsInfo
         public SlashCommandHandler? Handler { get; set; }
 
         /// <summary>
+        /// Handler that will be called when the command was executed by a user
+        /// </summary>
+        public InstancedSlashCommandHandler? InstancedHandler { get; set; }
+
+        /// <summary>
         /// Builder used to build SlashCommandCreationOptions
         /// </summary>
         public SlashCommandBuilder? DiscordNetBuilder { get; set; }
@@ -69,6 +86,17 @@ namespace Discord.Net.Interactions.CommandsInfo
         public TBuilder WithHandler(SlashCommandHandler handler)
         {
             Handler = handler;
+            return _builderInstance;
+        }
+
+        /// <summary>
+        /// Set command handler deleagate to be called when handling the command
+        /// </summary>
+        /// <param name="handler"></param>
+        /// <returns></returns>
+        public TBuilder WithHandler(InstancedSlashCommandHandler handler)
+        {
+            InstancedHandler = handler;
             return _builderInstance;
         }
 
