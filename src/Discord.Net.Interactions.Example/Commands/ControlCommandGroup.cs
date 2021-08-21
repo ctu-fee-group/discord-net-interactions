@@ -22,7 +22,7 @@ namespace Discord.Net.Interactions.Example.Commands
             _stopBot = stopBot;
         }
 
-        private Task HandleQuit(IDiscordInteraction interaction, CancellationToken cancellationToken)
+        private Task HandleQuit(SocketInteraction interaction, CancellationToken cancellationToken)
         {
             _stopBot.Invoke();
             return interaction.FollowupAsync("Goodbye");
