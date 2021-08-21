@@ -91,7 +91,8 @@ namespace Discord.Net.Interactions.DI
                 .AddSingleton<InteractionsService<TInteractionInfo>>();
 
             collection
-                .AddInteractionMatcher<SlashCommandMatcher>();
+                .AddInteractionMatcher<SlashCommandMatcher>()
+                .AddInteractionMatcher<MessageComponentMatcher>();
 
             configure?.Invoke(collection);
 
