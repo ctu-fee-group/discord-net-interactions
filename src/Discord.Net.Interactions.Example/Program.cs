@@ -39,7 +39,7 @@ namespace Discord.Net.Interactions.Example
                 .AddSingleton<DiscordSocketClient>()
                 .AddSingleton<DiscordRestClient>(p => p.GetRequiredService<DiscordSocketClient>().Rest)
                 .AddDefaultInteractionService<SlashCommandInfo>()
-                .AddOneByOneCommandRegistrator<SlashCommandInfo>() // commands will be registered one by one
+                .AddBulkCommandRegistrator<SlashCommandInfo>() // commands will be registered one by one
                 .AddEveryoneCommandPermissionResolver<
                     SlashCommandInfo>() // everyone will have permission to use the command
                 .AddCommandGroup<ControlCommandGroup,

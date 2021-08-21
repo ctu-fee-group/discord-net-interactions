@@ -70,7 +70,7 @@ namespace Discord.Net.Interactions.Example.Commands
                         .WithName("mentionable") // the name must match the name of the parameter
                         .WithDescription("Who to mention")
                         .WithRequired(true)))
-                .WithGuild(_options.GuildId)
+                .SetGlobal(true) // Make ping global
                 .Build();
             
             SlashCommandInfo feedbackInfo = new SlashCommandInfoBuilder()
