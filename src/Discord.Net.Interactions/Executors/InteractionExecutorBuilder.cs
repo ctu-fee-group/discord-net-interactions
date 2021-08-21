@@ -22,6 +22,7 @@ namespace Discord.Net.Interactions.Executors
 
         private IInteractionExecutor? _base;
         private ICommandPermissionsResolver<TInteractionInfo>? _commandPermissionsResolver;
+        private IInteractionHolder? _onlyOnceHolder;
         private string? _deferMessage;
         private ILogger? _logger;
 
@@ -74,6 +75,17 @@ namespace Discord.Net.Interactions.Executors
             _commandPermissionsResolver = commandPermissionsResolver;
             return _builderInstance;
         }
+        
+        /// <summary>
+        /// Makes the interaction execute only once and then removes it from the holder
+        /// </summary>
+        /// <returns></returns>
+        public TBuilder OnlyOnce(IInteractionHolder holder)
+        {
+            _onlyOnceHolder = holder;
+            return _builderInstance;
+        }
+
 
         /// <summary>
         /// Add ThreadPoolCommandExecutor decorator
@@ -104,15 +116,10 @@ namespace Discord.Net.Interactions.Executors
             }
 
             IInteractionExecutor executor = _base;
-
-            if (_threadPool)
+            
+            if (_onlyOnceHolder != null)
             {
-                if (_logger is null)
-                {
-                    throw new InvalidOperationException("Logger must not be null");
-                }
-                
-                executor = new ThreadPoolInteractionExecutor(_logger, executor);
+                executor = new OnlyOnceInteractionExecutor(_onlyOnceHolder, executor);
             }
 
             if (_commandPermissionsResolver != null)
@@ -128,6 +135,16 @@ namespace Discord.Net.Interactions.Executors
             if (_defer)
             {
                 executor = new AutoDeferInteractionExecutor(executor, _deferMessage);
+            }
+            
+            if (_threadPool)
+            {
+                if (_logger is null)
+                {
+                    throw new InvalidOperationException("Logger must not be null");
+                }
+                
+                executor = new ThreadPoolInteractionExecutor(_logger, executor);
             }
 
             return executor;
