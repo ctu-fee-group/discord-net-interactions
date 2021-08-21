@@ -7,20 +7,20 @@ using Discord.WebSocket;
 
 namespace Discord.Net.Interactions.Abstractions
 {
-    public delegate Task CommandDelegate(IDiscordInteraction interaction, CancellationToken token);
+    public delegate Task CommandDelegate(SocketInteraction interaction, CancellationToken token);
 
-    public delegate Task CommandDelegate<in T1>(IDiscordInteraction interaction, T1 arg1, CancellationToken token);
+    public delegate Task CommandDelegate<in T1>(SocketInteraction interaction, T1 arg1, CancellationToken token);
 
-    public delegate Task CommandDelegate<in T1, in T2>(IDiscordInteraction interaction, T1 arg1, T2 arg2,
+    public delegate Task CommandDelegate<in T1, in T2>(SocketInteraction interaction, T1 arg1, T2 arg2,
         CancellationToken token);
 
-    public delegate Task CommandDelegate<in T1, in T2, in T3>(IDiscordInteraction interaction, T1 arg1, T2 arg2, T3 arg3,
+    public delegate Task CommandDelegate<in T1, in T2, in T3>(SocketInteraction interaction, T1 arg1, T2 arg2, T3 arg3,
         CancellationToken token);
 
-    public delegate Task CommandDelegate<in T1, in T2, in T3, in T4>(IDiscordInteraction interaction, T1 arg1, T2 arg2,
+    public delegate Task CommandDelegate<in T1, in T2, in T3, in T4>(SocketInteraction interaction, T1 arg1, T2 arg2,
         T3 arg3, T4 arg4, CancellationToken token);
 
-    public delegate Task CommandDelegate<in T1, in T2, in T3, in T4, T5>(IDiscordInteraction interaction, T1 arg1, T2 arg2,
+    public delegate Task CommandDelegate<in T1, in T2, in T3, in T4, T5>(SocketInteraction interaction, T1 arg1, T2 arg2,
         T3 arg3, T4 arg4, T5 arg5, CancellationToken token);
 
     /// <summary>

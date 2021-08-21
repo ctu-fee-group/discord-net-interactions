@@ -28,19 +28,19 @@ namespace Discord.Net.Interactions.Example.Commands
             _options = options.Value;
         }
 
-        private Task HandlePing(IDiscordInteraction interaction, IMentionable mentionable, CancellationToken cancellationToken)
+        private Task HandlePing(SocketInteraction interaction, IMentionable mentionable, CancellationToken cancellationToken)
         {
             return interaction
                 .RespondAsync($"Pong {mentionable.Mention}");
         }
 
-        private async Task HandleFeedbackPositive(IDiscordInteraction interaction, Feedback feedback, CancellationToken cancellationToken)
+        private async Task HandleFeedbackPositive(SocketInteraction interaction, Feedback feedback, CancellationToken cancellationToken)
         {
             await interaction.RespondAsync("Thank you for your positive feedback!", ephemeral: true);
             await interaction.FollowupAsync($"User {interaction.GetUser()} left a feedback {feedback}");
         }
         
-        private async Task HandleFeedbackNegative(IDiscordInteraction interaction, Feedback feedback, CancellationToken cancellationToken)
+        private async Task HandleFeedbackNegative(SocketInteraction interaction, Feedback feedback, CancellationToken cancellationToken)
         {
             await interaction.RespondAsync("Thank you for your negative feedback!", ephemeral: true);
             await interaction.FollowupAsync($"User {interaction.GetUser()} left a feedback {feedback}");

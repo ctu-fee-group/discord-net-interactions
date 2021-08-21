@@ -10,14 +10,14 @@ namespace Discord.Net.Interactions.Abstractions
     /// Handler function of slash commands without instance, <see cref="InstancedDiscordInteractionHandler"/> for
     /// command handler that can be invoked with different instances
     /// </summary>
-    public delegate Task DiscordInteractionHandler(IDiscordInteraction interaction,
+    public delegate Task DiscordInteractionHandler(SocketInteraction interaction,
         CancellationToken token = new CancellationToken());
 
     /// <summary>
     /// Handler function of slash commands supporting invoking with different class instances
     /// for holding context per command
     /// </summary>
-    public delegate Task InstancedDiscordInteractionHandler(object classInstance, IDiscordInteraction interaction,
+    public delegate Task InstancedDiscordInteractionHandler(object classInstance, SocketInteraction interaction,
         CancellationToken token = new CancellationToken());
 
     /// <summary>
