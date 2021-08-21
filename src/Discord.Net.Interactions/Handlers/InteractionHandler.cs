@@ -15,7 +15,7 @@ namespace Discord.Net.Interactions.Handlers
     /// </remarks>
     public class InteractionHandler : IDisposable
     {
-        protected readonly IInteractionHolder InteractionsHolder;
+        protected readonly IInteractionHolder _interactionsHolder;
         protected readonly CancellationTokenSource _commandsTokenSource;
         protected readonly DiscordSocketClient _client;
 
@@ -26,7 +26,7 @@ namespace Discord.Net.Interactions.Handlers
         {
             _interactionMatcherProvider = matcherProvider;
             _commandsTokenSource = new CancellationTokenSource();
-            InteractionsHolder = interactionsHolder;
+            _interactionsHolder = interactionsHolder;
             _client = client;
         }
 
@@ -49,7 +49,7 @@ namespace Discord.Net.Interactions.Handlers
         protected virtual Task HandleInteractionCreated(SocketInteraction interaction)
         {
             HeldInteraction? heldInteraction =
-                InteractionsHolder.TryMatch(_interactionMatcherProvider.GetMatchers(), interaction);
+                _interactionsHolder.TryMatch(_interactionMatcherProvider.GetMatchers(), interaction);
 
             if (heldInteraction != null)
             {
