@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Reflection;
 
 namespace Discord.Net.Interactions.Abstractions
 {
@@ -48,6 +49,51 @@ namespace Discord.Net.Interactions.Abstractions
             return creator
                 .CreateHandlerForCommand(matchers.Select(
                     x => ValueTuple.Create<Func<T, bool>, U>(((y) => x.Item1.Equals(y)), x.Item2)));
+        }
+        
+                /// <summary>
+        /// Passes one matcher that always return true to <see cref="ICommandHandlerCreator{T}.CreateHandlerForCommand"/>
+        /// Creates SlashCommandHandler that will always execute given delegate
+        /// </summary>
+        /// <param name="creator"></param>
+        /// <param name="deleg">Delegate to execute with the command</param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static InstancedSlashCommandHandler CreateInstancedHandlerForCommand<T, U>(this ICommandHandlerCreator<T, U> creator,
+            MethodInfo methodInfo)
+        {
+            return creator
+                .CreateInstancedHandlerForCommand((_ => true, methodInfo));
+        }
+
+        /// <summary>
+        /// Passes params to <see cref="ICommandHandlerCreator{T}.CreateHandlerForCommand"/>
+        /// Creates SlashCommandHandler based on matchers
+        /// </summary>
+        /// <param name="creator"></param>
+        /// <param name="matchers"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static InstancedSlashCommandHandler CreateInstancedHandlerForCommand<T, U>(this ICommandHandlerCreator<T, U> creator, params (Func<T, bool>, MethodInfo)[] matchers)
+        {
+            return creator.CreateInstancedHandlerForCommand(matchers.AsEnumerable());
+        }
+
+        /// <summary>
+        /// Passes equals matchers to <see cref="ICommandHandlerCreator{T}.CreateHandlerForCommand"/>
+        /// Creates SlashCommandHandler matching T objects in matchers
+        /// </summary>
+        /// <param name="creator"></param>
+        /// <param name="matchers"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static InstancedSlashCommandHandler CreateInstancedHandlerForCommand<T, U>(this ICommandHandlerCreator<T, U> creator,
+            params (T, MethodInfo)[] matchers)
+        where T : notnull
+        {
+            return creator
+                .CreateInstancedHandlerForCommand(matchers.Select(
+                    x => ValueTuple.Create<Func<T, bool>, MethodInfo>(((y) => x.Item1.Equals(y)), x.Item2)));
         }
     }
 }
