@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord.Net.Interactions.Abstractions;
+using Discord.Net.Interactions.Reflection;
 using Discord.WebSocket;
 
 namespace Discord.Net.Interactions.HandlerCreator
@@ -17,38 +20,79 @@ namespace Discord.Net.Interactions.HandlerCreator
     /// </summary>
     public class SubCommandHandlerCreator : ICommandHandlerCreator<string, Delegate>
     {
-        private record HandlerMatcher(Func<string, bool> Matcher,
-            Func<SocketSlashCommand, SocketSlashCommandDataOption?, CancellationToken, Task> Handler);
-
-        public SlashCommandHandler CreateHandlerForCommand(IEnumerable<(Func<string, bool>, Delegate)> matchers)
+        private HandlerMatcher<T> GetMatchedHandler<T>(List<HandlerMatcher<T>> matchers, SocketSlashCommand command,
+            out SocketSlashCommandDataOption? outOption, CancellationToken token)
         {
-            List<HandlerMatcher> realMatchers = matchers
-                .Select(x => new HandlerMatcher(
-                    x.Item1,
-                    CommandHandlerCreatorUtils.CreateHandler<SocketSlashCommandDataOption?>(x.Item2,
-                        (data, option) => CommandHandlerCreatorUtils.GetParametersFromOptions(x.Item2, option?.Options))
-                ))
-                .ToList();
+            token.ThrowIfCancellationRequested();
 
-            return GetHandler(realMatchers);
+            string matchAgainst = GetSubcommandArguments(command, out SocketSlashCommandDataOption? option);
+            HandlerMatcher<T>? handler = matchers.FirstOrDefault(x => x.Matcher(matchAgainst));
+
+            outOption = option;
+
+            if (handler is null)
+            {
+                throw new InvalidOperationException(
+                    $"Could not match subcommand /{command.Data.Name} {matchAgainst}");
+            }
+
+            return handler;
         }
 
-        private SlashCommandHandler GetHandler(List<HandlerMatcher> matchers)
+        private record HandlerMatcher<T>(Func<string, bool> Matcher,
+            Func<Delegate, SocketSlashCommand, SocketSlashCommandDataOption?, CancellationToken, Task> Handler,
+            T Instance);
+
+        public SlashCommandHandler CreateHandlerForCommand(IEnumerable<(Func<string, bool>, Delegate)> matchers) =>
+            GetCommandHandler(ParseMatchers<Delegate>(matchers, EfficientInvoker.ForDelegate, x => x.Method));
+
+        public InstancedSlashCommandHandler CreateInstancedHandlerForCommand(
+            IEnumerable<(Func<string, bool>, MethodInfo)> matchers) =>
+            GetInstancedCommandHandler(ParseMatchers<MethodInfo>(matchers,
+                EfficientInvoker.ForMethod, x => x));
+
+        private List<HandlerMatcher<T>> ParseMatchers<T>(IEnumerable<(Func<string, bool>, T)> matchers,
+            Func<T, EfficientInvoker> getInvoker, Func<T, MethodInfo> getMethodInfo)
+        {
+            return matchers
+                .Select(x =>
+                {
+                    EfficientInvoker invoker = getInvoker(x.Item2);
+                    return new HandlerMatcher<T>(
+                        x.Item1,
+                        CommandHandlerCreatorUtils.CreateHandler<SocketSlashCommandDataOption?>(invoker,
+                            (data, option) =>
+                                CommandHandlerCreatorUtils.GetParametersFromOptions(getMethodInfo(x.Item2), option?.Options)),
+                        x.Item2
+                    );
+                })
+                .ToList();
+        }
+
+
+        private InstancedSlashCommandHandler GetInstancedCommandHandler(List<HandlerMatcher<MethodInfo>> matchers)
+        {
+            return (instance, command, token) =>
+            {
+                HandlerMatcher<MethodInfo> matcher =
+                    GetMatchedHandler(matchers, command, out SocketSlashCommandDataOption? option, token);
+                Delegate methodDelegate = matcher.Instance.CreateDelegate<Delegate>(instance);
+                token.ThrowIfCancellationRequested();
+
+                return
+                    matcher.Handler(methodDelegate, command, option, token);
+            };
+        }
+
+        private SlashCommandHandler GetCommandHandler(List<HandlerMatcher<Delegate>> matchers)
         {
             return (command, token) =>
             {
                 token.ThrowIfCancellationRequested();
 
-                string matchAgainst = GetSubcommandArguments(command, out SocketSlashCommandDataOption? option);
-                HandlerMatcher? handler = matchers.FirstOrDefault(x => x.Matcher(matchAgainst));
-
-                if (handler is null)
-                {
-                    throw new InvalidOperationException(
-                        $"Could not match subcommand /{command.Data.Name} {matchAgainst}");
-                }
-
-                return handler.Handler(command, option, token);
+                HandlerMatcher<Delegate> matchedHandler =
+                    GetMatchedHandler(matchers, command, out SocketSlashCommandDataOption? option, token);
+                return matchedHandler.Handler(matchedHandler.Instance, command, option, token);
             };
         }
 

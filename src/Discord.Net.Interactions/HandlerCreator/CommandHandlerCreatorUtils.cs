@@ -12,6 +12,7 @@ namespace Discord.Net.Interactions.HandlerCreator
 {
     public class CommandHandlerCreatorUtils
     {
+
         /// <summary>
         /// Create SlashCommandHandler from given Delegate.
         /// It should have the following signature: SocketSlashCommand, *arguments for the command with matching names*, CancellationToken
@@ -21,18 +22,16 @@ namespace Discord.Net.Interactions.HandlerCreator
         /// <param name="getArguments">Function to obtain arguments for the delegate with</param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public static SlashCommandHandler CreateHandler(Delegate function,
+        public static InstancedSlashCommandHandler CreateHandler(EfficientInvoker invoker,
             Func<SocketSlashCommandData, IEnumerable<object?>?> getArguments)
         {
-            EfficientInvoker invoker = EfficientInvoker.ForDelegate(function);
-
-            return (command, token) =>
+            return (instance, command, token) =>
             {
                 List<object?> args = new() {command};
                 args.AddRange(getArguments(command.Data) ?? Enumerable.Empty<object?>());
                 args.Add(token);
 
-                return Invoke(command.Data.Name, invoker, function, args.ToArray());
+                return Invoke(command.Data.Name, invoker, instance, args.ToArray());
             };
         }
 
@@ -45,25 +44,23 @@ namespace Discord.Net.Interactions.HandlerCreator
         /// <param name="getArguments">Function to obtain arguments for the delegate with</param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public static Func<SocketSlashCommand, T, CancellationToken, Task> CreateHandler<T>(Delegate function,
+        public static Func<object, SocketSlashCommand, T, CancellationToken, Task> CreateHandler<T>(EfficientInvoker invoker,
             Func<SocketSlashCommandData, T, IEnumerable<object?>?> getArguments)
         {
-            EfficientInvoker invoker = EfficientInvoker.ForDelegate(function);
-
-            return (command, helper, token) =>
+            return (instance, command, helper, token) =>
             {
                 List<object?> args = new() {command};
                 args.AddRange(getArguments(command.Data, helper) ?? Enumerable.Empty<object?>());
                 args.Add(token);
 
-                return Invoke(command.Data.Name, invoker, function, args.ToArray());
+                return Invoke(command.Data.Name, invoker, instance, args.ToArray());
             };
         }
 
-        public static IEnumerable<object?> GetParametersFromOptions(Delegate function,
+        public static IEnumerable<object?> GetParametersFromOptions(MethodInfo methodInfo,
             IEnumerable<SocketSlashCommandDataOption>? options)
         {
-            ParameterInfo[] parameters = function.Method.GetParameters();
+            ParameterInfo[] parameters = methodInfo.GetParameters();
             object?[] arguments = new object?[parameters.Length - 2];
 
             if (options == null)
@@ -82,9 +79,9 @@ namespace Discord.Net.Interactions.HandlerCreator
             return arguments;
         }
 
-        private static Task Invoke(string name, EfficientInvoker invoker, Delegate function, object?[] args)
+        private static Task Invoke(string name, EfficientInvoker invoker, object instance, object?[] args)
         {
-            object? data = invoker.Invoke(function, args.ToArray());
+            object? data = invoker.Invoke(instance, args.ToArray());
 
             if (data is null)
             {
