@@ -9,7 +9,7 @@ using Microsoft.Extensions.Options;
 
 namespace Discord.Net.Interactions.Example.Commands
 {
-    public class ControlCommandGroup : ICommandGroup<SlashCommandInfo>
+    public class ControlCommandGroup : ICommandGroup
     {
         private readonly CommandsOptions _options;
         private readonly ILogger _logger;
@@ -28,7 +28,7 @@ namespace Discord.Net.Interactions.Example.Commands
             return interaction.FollowupAsync("Goodbye");
         }
         
-        public Task SetupCommandsAsync(ICommandHolder<SlashCommandInfo> holder, CancellationToken token = new CancellationToken())
+        public Task SetupCommandsAsync(IInteractionHolder holder, CancellationToken token = new CancellationToken())
         {
             // Create quit command info
             SlashCommandInfo info = new SlashCommandInfoBuilder()
@@ -40,12 +40,12 @@ namespace Discord.Net.Interactions.Example.Commands
                 .Build();
             
             // Create executor along with Deferring ephemerally and logging in case of an error
-            ICommandExecutor<SlashCommandInfo> executor = new CommandExecutorBuilder()
+            IInteractionExecutor executor = new InteractionExecutorBuilder()
                 .WithLogger(_logger)
                 .WithDeferMessage()
                 .Build();
 
-            holder.AddCommand(info, executor);
+            holder.AddInteraction(info, executor);
             return Task.CompletedTask;
         }
     }

@@ -7,26 +7,31 @@ using Microsoft.Extensions.Logging;
 
 namespace Discord.Net.Interactions.Executors
 {
-    public class PermissionCheckCommandExecutor<TInteractionInfo> : ICommandExecutor<TInteractionInfo>
+    public class PermissionCheckInteractionExecutor<TInteractionInfo> : IInteractionExecutor
         where TInteractionInfo : InteractionInfo
     {
         private readonly ILogger _logger;
-        private readonly ICommandExecutor<TInteractionInfo> _executor;
+        private readonly IInteractionExecutor _executor;
         private readonly ICommandPermissionsResolver<TInteractionInfo> _commandPermissionsResolver;
 
-        public PermissionCheckCommandExecutor(ILogger logger,
+        public PermissionCheckInteractionExecutor(ILogger logger,
             ICommandPermissionsResolver<TInteractionInfo> commandPermissionsResolver,
-            ICommandExecutor<TInteractionInfo> underlyingExecutor)
+            IInteractionExecutor underlyingExecutor)
         {
             _commandPermissionsResolver = commandPermissionsResolver;
             _executor = underlyingExecutor;
             _logger = logger;
         }
 
-        public async Task TryExecuteInteraction(TInteractionInfo info, SocketInteraction interaction,
+        public async Task TryExecuteInteraction(InteractionInfo info, SocketInteraction interaction,
             CancellationToken token = default)
         {
-            if (await _commandPermissionsResolver.HasPermissionAsync(interaction.User, info, token))
+            if (info is not TInteractionInfo typedInfo)
+            {
+                throw new InvalidOperationException("Cannot cast InteractionInfo to correct type for permission check");
+            }
+            
+            if (await _commandPermissionsResolver.HasPermissionAsync(interaction.User, typedInfo, token))
             {
                 await _executor.TryExecuteInteraction(info, interaction, token);
             }

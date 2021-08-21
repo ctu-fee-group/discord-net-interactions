@@ -10,7 +10,7 @@ using Microsoft.Extensions.Options;
 
 namespace Discord.Net.Interactions.Example.Commands
 {
-    public class PingCommandGroup : ICommandGroup<SlashCommandInfo>
+    public class PingCommandGroup : ICommandGroup
     {
         public enum Feedback : long // Important to inherit from long as discord.net returns long when calling command
         {
@@ -37,16 +37,16 @@ namespace Discord.Net.Interactions.Example.Commands
         private async Task HandleFeedbackPositive(IDiscordInteraction interaction, Feedback feedback, CancellationToken cancellationToken)
         {
             await interaction.RespondAsync("Thank you for your positive feedback!", ephemeral: true);
-            await interaction.FollowupAsync($"User {command.User.Mention} left a feedback {feedback}");
+            await interaction.FollowupAsync($"User {interaction.GetUser()} left a feedback {feedback}");
         }
         
         private async Task HandleFeedbackNegative(IDiscordInteraction interaction, Feedback feedback, CancellationToken cancellationToken)
         {
             await interaction.RespondAsync("Thank you for your negative feedback!", ephemeral: true);
-            await interaction.FollowupAsync($"User {command.User.Mention} left a feedback {feedback}");
+            await interaction.FollowupAsync($"User {interaction.GetUser()} left a feedback {feedback}");
         }
         
-        public Task SetupCommandsAsync(ICommandHolder<SlashCommandInfo> holder, CancellationToken token = new CancellationToken())
+        public Task SetupCommandsAsync(IInteractionHolder holder, CancellationToken token = new CancellationToken())
         {
             // Create handler for ping command calling correctly HandlePing method
             DiscordInteractionHandler pingHandler = new PlainCommandHandlerCreator()
@@ -108,12 +108,12 @@ namespace Discord.Net.Interactions.Example.Commands
                 .Build();
             
             // Create executor along with logging in case of an error
-            ICommandExecutor<SlashCommandInfo> executor = new CommandExecutorBuilder()
+            IInteractionExecutor executor = new InteractionExecutorBuilder()
                 .WithLogger(_logger)
                 .Build();
 
-            holder.AddCommand(pingInfo, executor);
-            holder.AddCommand(feedbackInfo, executor);
+            holder.AddInteraction(pingInfo, executor);
+            holder.AddInteraction(feedbackInfo, executor);
             return Task.CompletedTask;
         }
     }

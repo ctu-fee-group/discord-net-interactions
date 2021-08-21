@@ -7,36 +7,35 @@ namespace Discord.Net.Interactions.Commands
     /// <summary>
     /// Thread-safe implementation of CommandHolder using locks to achieve thread safety
     /// </summary>
-    public class ThreadSafeCommandHolder<TInteractionInfo> : ICommandHolder<TInteractionInfo>
-        where TInteractionInfo : InteractionInfo
+    public class ThreadSafeInteractionHolder : IInteractionHolder
     {
-        private readonly List<HeldInteraction<TInteractionInfo>> _commands;
+        private readonly List<HeldInteraction> _commands;
         private readonly object _commandsLock = new object();
 
-        public ThreadSafeCommandHolder()
+        public ThreadSafeInteractionHolder()
         {
-            _commands = new List<HeldInteraction<TInteractionInfo>>();
+            _commands = new List<HeldInteraction>();
         }
 
-        public IEnumerable<HeldInteraction<TInteractionInfo>> Interactions
+        public IEnumerable<HeldInteraction> Interactions
         {
             get
             {
                 lock (_commandsLock)
                 {
-                    return new List<HeldInteraction<TInteractionInfo>>(_commands);
+                    return new List<HeldInteraction>(_commands);
                 }
             }
         }
 
-        public HeldInteraction<TInteractionInfo>? TryMatch(IEnumerable<IInteractionMatcher> matchers,
+        public HeldInteraction? TryMatch(IEnumerable<IInteractionMatcher> matchers,
             IDiscordInteraction interaction)
         {
-            List<HeldInteraction<TInteractionInfo>> heldInteractions = Interactions.ToList();
+            List<HeldInteraction> heldInteractions = Interactions.ToList();
 
             foreach (IInteractionMatcher matcher in matchers)
             {
-                foreach (HeldInteraction<TInteractionInfo> heldInteraction in heldInteractions)
+                foreach (HeldInteraction heldInteraction in heldInteractions)
                 {
                     if (matcher.Matches(interaction, heldInteraction.Info))
                     {
@@ -48,11 +47,11 @@ namespace Discord.Net.Interactions.Commands
             return null;
         }
 
-        public TInteractionInfo AddCommand(TInteractionInfo info, ICommandExecutor<TInteractionInfo> executor)
+        public InteractionInfo AddInteraction(InteractionInfo info, IInteractionExecutor executor)
         {
             lock (_commandsLock)
             {
-                _commands.Add(new HeldInteraction<TInteractionInfo>(info, executor));
+                _commands.Add(new HeldInteraction(info, executor));
             }
 
             return info;

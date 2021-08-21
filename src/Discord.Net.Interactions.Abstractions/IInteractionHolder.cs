@@ -7,16 +7,13 @@ namespace Discord.Net.Interactions.Abstractions
     /// </summary>
     /// <param name="Info"></param>
     /// <param name="Executor"></param>
-    public record HeldInteraction<TInteractionInfo>(TInteractionInfo Info, ICommandExecutor<TInteractionInfo> Executor)
-        where TInteractionInfo : InteractionInfo;
-    
+    public record HeldInteraction(InteractionInfo Info, IInteractionExecutor Executor);
     /// <summary>
     /// Interface supporting registration and holding of slash commands
     /// </summary>
-    public interface ICommandHolder<TInteractionInfo>
-        where TInteractionInfo : InteractionInfo
+    public interface IInteractionHolder
     {
-        public IEnumerable<HeldInteraction<TInteractionInfo>> Interactions { get; }
+        public IEnumerable<HeldInteraction> Interactions { get; }
 
         /// <summary>
         /// Tries to get a slash command in list of commands by its name
@@ -24,7 +21,7 @@ namespace Discord.Net.Interactions.Abstractions
         /// </summary>
         /// <param name="name"></param>
         /// <returns>Slash command if it was found, otherwise null</returns>
-        public HeldInteraction<TInteractionInfo>? TryMatch(IEnumerable<IInteractionMatcher> matchers, IDiscordInteraction interaction);
+        public HeldInteraction? TryMatch(IEnumerable<IInteractionMatcher> matchers, IDiscordInteraction interaction);
         
         /// <summary>
         /// Save command to collection
@@ -32,7 +29,7 @@ namespace Discord.Net.Interactions.Abstractions
         /// <param name="info"></param>
         /// <param name="executor"></param>
         /// <returns></returns>
-        public TInteractionInfo AddCommand(TInteractionInfo info, ICommandExecutor<TInteractionInfo> executor);
+        public InteractionInfo AddInteraction(InteractionInfo info, IInteractionExecutor executor);
         
         /// <summary>
         /// Remove all commands from collection

@@ -4,28 +4,28 @@ using Microsoft.Extensions.Logging;
 
 namespace Discord.Net.Interactions.Executors
 {
-    public sealed class CommandExecutorBuilder
-        : CommandExecutorBuilder<CommandExecutorBuilder, SlashCommandInfo>
+    public sealed class InteractionExecutorBuilder
+        : InteractionExecutorBuilder<InteractionExecutorBuilder, SlashCommandInfo>
     { }
     
-    public sealed class CommandExecutorBuilder<TInteractionInfo>
-        : CommandExecutorBuilder<CommandExecutorBuilder<TInteractionInfo>, TInteractionInfo>
+    public sealed class InteractionExecutorBuilder<TInteractionInfo>
+        : InteractionExecutorBuilder<InteractionExecutorBuilder<TInteractionInfo>, TInteractionInfo>
         where TInteractionInfo : InteractionInfo
     { }
 
-    public abstract class CommandExecutorBuilder<TBuilder, TInteractionInfo>
-        where TBuilder : CommandExecutorBuilder<TBuilder, TInteractionInfo>
+    public abstract class InteractionExecutorBuilder<TBuilder, TInteractionInfo>
+        where TBuilder : InteractionExecutorBuilder<TBuilder, TInteractionInfo>
         where TInteractionInfo : InteractionInfo
     {
         private readonly TBuilder _builderInstance;
         private bool _defer, _threadPool;
 
-        private ICommandExecutor<TInteractionInfo>? _base;
+        private IInteractionExecutor? _base;
         private ICommandPermissionsResolver<TInteractionInfo>? _commandPermissionsResolver;
         private string? _deferMessage;
         private ILogger? _logger;
 
-        protected CommandExecutorBuilder()
+        protected InteractionExecutorBuilder()
         {
             _builderInstance = (TBuilder)this;
         }
@@ -58,7 +58,7 @@ namespace Discord.Net.Interactions.Executors
         /// </summary>
         /// <param name="executor"></param>
         /// <returns></returns>
-        public TBuilder SetBaseExecutor(ICommandExecutor<TInteractionInfo> executor)
+        public TBuilder SetBaseExecutor(IInteractionExecutor executor)
         {
             _base = executor;
             return _builderInstance;
@@ -91,7 +91,7 @@ namespace Discord.Net.Interactions.Executors
         /// <returns></returns>
         /// <exception cref="InvalidCastException"></exception>
         /// <exception cref="InvalidOperationException"></exception>
-        public virtual ICommandExecutor<TInteractionInfo> Build()
+        public virtual IInteractionExecutor Build()
         {
             if (_base is null)
             {
@@ -100,10 +100,10 @@ namespace Discord.Net.Interactions.Executors
                     throw new InvalidCastException("Logger must not be null");
                 }
                 
-                _base = new HandlerCommandExecutor<TInteractionInfo>(_logger);
+                _base = new HandlerInteractionExecutor(_logger);
             }
 
-            ICommandExecutor<TInteractionInfo> executor = _base;
+            IInteractionExecutor executor = _base;
 
             if (_threadPool)
             {
@@ -112,7 +112,7 @@ namespace Discord.Net.Interactions.Executors
                     throw new InvalidOperationException("Logger must not be null");
                 }
                 
-                executor = new ThreadPoolCommandExecutor<TInteractionInfo>(_logger, executor);
+                executor = new ThreadPoolInteractionExecutor(_logger, executor);
             }
 
             if (_commandPermissionsResolver != null)
@@ -122,12 +122,12 @@ namespace Discord.Net.Interactions.Executors
                     throw new InvalidOperationException("Logger must not be null");
                 }
                 
-                executor = new PermissionCheckCommandExecutor<TInteractionInfo>(_logger, _commandPermissionsResolver, executor);
+                executor = new PermissionCheckInteractionExecutor<TInteractionInfo>(_logger, _commandPermissionsResolver, executor);
             }
 
             if (_defer)
             {
-                executor = new AutoDeferCommandExecutor<TInteractionInfo>(executor, _deferMessage);
+                executor = new AutoDeferInteractionExecutor(executor, _deferMessage);
             }
 
             return executor;

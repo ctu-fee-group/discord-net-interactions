@@ -11,19 +11,18 @@ namespace Discord.Net.Interactions.Executors
     /// Command executor decorator for executing the command in separate thread
     /// If there is exception inside the thread, it will be logged
     /// </summary>
-    public class ThreadPoolCommandExecutor<TInteractionInfo> : ICommandExecutor<TInteractionInfo>
-        where TInteractionInfo : InteractionInfo
+    public class ThreadPoolInteractionExecutor : IInteractionExecutor
     {
         private readonly ILogger _logger;
-        private readonly ICommandExecutor<TInteractionInfo> _executor;
+        private readonly IInteractionExecutor _executor;
 
-        public ThreadPoolCommandExecutor(ILogger logger, ICommandExecutor<TInteractionInfo> underlyingExecutor)
+        public ThreadPoolInteractionExecutor(ILogger logger, IInteractionExecutor underlyingExecutor)
         {
             _executor = underlyingExecutor;
             _logger = logger;
         }
         
-        public Task TryExecuteInteraction(TInteractionInfo info, SocketInteraction interaction, CancellationToken token = default)
+        public Task TryExecuteInteraction(InteractionInfo info, SocketInteraction interaction, CancellationToken token = default)
         {
             _ = Task.Run(async () =>
             {

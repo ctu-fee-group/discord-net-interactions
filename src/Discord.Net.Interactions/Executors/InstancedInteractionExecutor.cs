@@ -13,22 +13,21 @@ namespace Discord.Net.Interactions.Executors
     /// Delegate to obtain instance with will be passed to the constructor.
     /// </summary>
     /// <typeparam name="TInteractionInfo"></typeparam>
-    public class InstancedCommandExecutor<TInteractionInfo> : ICommandExecutor<TInteractionInfo>
-        where TInteractionInfo : InteractionInfo
+    public class InstancedInteractionExecutor : IInteractionExecutor
     {
         private readonly ILogger _logger;
         private Func<InteractionInfo, SocketInteraction, CancellationToken, object> _getInstance;
         
         /// <param name="logger">Logger to log errors with</param>
         /// <param name="getInstance">Obtain new instance for execution of the command</param>
-        public InstancedCommandExecutor(ILogger logger,
+        public InstancedInteractionExecutor(ILogger logger,
             Func<InteractionInfo, SocketInteraction, CancellationToken, object> getInstance)
         {
             _logger = logger;
             _getInstance = getInstance;
         }
 
-        public async Task TryExecuteInteraction(TInteractionInfo info, SocketInteraction interaction, CancellationToken token = default)
+        public async Task TryExecuteInteraction(InteractionInfo info, SocketInteraction interaction, CancellationToken token = default)
         {
             try
             {

@@ -6,8 +6,7 @@ namespace Discord.Net.Interactions.Abstractions
     /// <summary>
     /// Class used for registering commands
     /// </summary>
-    public interface ICommandsRegistrator<TInteractionInfo>
-        where TInteractionInfo : InteractionInfo
+    public interface ICommandsRegistrator
     {
         /// <summary>
         /// Registers commands with Discord
@@ -15,7 +14,7 @@ namespace Discord.Net.Interactions.Abstractions
         /// <param name="holder"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        public Task RegisterCommandsAsync(ICommandHolder<TInteractionInfo> holder, CancellationToken token = default);
+        public Task RegisterCommandsAsync(IInteractionHolder holder, CancellationToken token = default);
         
         /// <summary>
         /// Unregisters all held commands with Discord
@@ -23,7 +22,7 @@ namespace Discord.Net.Interactions.Abstractions
         /// <param name="holder"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        public Task UnregisterCommandsAsync(ICommandHolder<TInteractionInfo> holder, CancellationToken token = default);
+        public Task UnregisterCommandsAsync(IInteractionHolder holder, CancellationToken token = default);
 
         /// <summary>
         /// Refreshes all held commands DefaultPermission and permissions
@@ -31,6 +30,6 @@ namespace Discord.Net.Interactions.Abstractions
         /// <param name="holder"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        public Task RefreshCommandsAndPermissionsAsync(ICommandHolder<TInteractionInfo> holder, CancellationToken token = default);
+        public Task RefreshCommandsAndPermissionsAsync(IInteractionHolder holder, CancellationToken token = default);
     }
 }

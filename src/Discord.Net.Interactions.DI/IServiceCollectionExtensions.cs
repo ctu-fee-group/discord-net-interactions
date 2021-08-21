@@ -36,7 +36,7 @@ namespace Discord.Net.Interactions.DI
             where TInteractionInfo : SlashCommandInfo
         {
             return collection
-                .AddSingleton<ICommandsRegistrator<TInteractionInfo>, BulkCommandsRegistrator<TInteractionInfo>>();
+                .AddSingleton<ICommandsRegistrator, BulkCommandsRegistrator<TInteractionInfo>>();
         }
         
         /// <summary>
@@ -50,7 +50,7 @@ namespace Discord.Net.Interactions.DI
             where TInteractionInfo : SlashCommandInfo
         {
             return collection
-                .AddSingleton<ICommandsRegistrator<TInteractionInfo>, OneByOneCommandsRegistrator<TInteractionInfo>>();
+                .AddSingleton<ICommandsRegistrator, OneByOneCommandsRegistrator<TInteractionInfo>>();
         }
 
         /// <summary>
@@ -64,19 +64,29 @@ namespace Discord.Net.Interactions.DI
             where TInteractionInfo : InteractionInfo
         {
             collection
-                .AddOptions<DICommandGroupsProvider<TInteractionInfo>>();
+                .AddOptions<DICommandGroupsProvider>();
+            collection
+                .AddOptions<DIInteractionMatcherProvider>();
 
             collection
-                .AddSingleton<ICommandsGroupProvider<TInteractionInfo>>(p =>
+                .AddSingleton<ICommandsGroupProvider>(p =>
                 {
-                    DICommandGroupsProvider<TInteractionInfo> provider =
-                        p.GetRequiredService<IOptions<DICommandGroupsProvider<TInteractionInfo>>>().Value;
+                    DICommandGroupsProvider provider =
+                        p.GetRequiredService<IOptions<DICommandGroupsProvider>>().Value;
                     provider.Provider = p;
 
                     return provider;
                 })
-                .AddSingleton<ICommandHolder<TInteractionInfo>, ThreadSafeCommandHolder<TInteractionInfo>>()
-                .AddSingleton<InteractionHandler<TInteractionInfo>>()
+                .AddSingleton<IInteractionMatcherProvider>(p =>
+                {
+                    DIInteractionMatcherProvider provider =
+                        p.GetRequiredService<IOptions<DIInteractionMatcherProvider>>().Value;
+                    provider.Provider = p;
+
+                    return provider;
+                })
+                .AddSingleton<IInteractionHolder, ThreadSafeInteractionHolder>()
+                .AddSingleton<InteractionHandler>()
                 .AddSingleton<InteractionsService<TInteractionInfo>>();
 
             configure?.Invoke(collection);
@@ -89,14 +99,45 @@ namespace Discord.Net.Interactions.DI
         /// </summary>
         /// <param name="collection"></param>
         /// <returns></returns>
-        public static IServiceCollection AddCommandGroup<TGroup, TInteractionInfo>(this IServiceCollection collection)
-            where TGroup : class, ICommandGroup<TInteractionInfo>
-            where TInteractionInfo : InteractionInfo
+        public static IServiceCollection AddCommandGroup<TGroup>(this IServiceCollection collection)
+            where TGroup : class, ICommandGroup
         {
             collection.AddSingleton<TGroup>();
 
-            collection.Configure<DICommandGroupsProvider<TInteractionInfo>>(handler =>
+            collection.Configure<DICommandGroupsProvider>(handler =>
                 handler.RegisterGroupType(typeof(TGroup)));
+
+            return collection;
+        }
+        
+        /// <summary>
+        /// Adds CommandGroup as scoped and configures DICommandGroupsProvider to provide this group command correctly
+        /// </summary>
+        /// <param name="collection"></param>
+        /// <returns></returns>
+        public static IServiceCollection AddScopedCommandGroup<TGroup>(this IServiceCollection collection)
+            where TGroup : class, ICommandGroup
+        {
+            collection.AddScoped<TGroup>();
+
+            collection.Configure<DICommandGroupsProvider>(handler =>
+                handler.RegisterGroupType(typeof(TGroup)));
+
+            return collection;
+        }
+        
+        /// <summary>
+        /// Adds CommandGroup as singleton and configures DICommandGroupsProvider to provide this group command correctly
+        /// </summary>
+        /// <param name="collection"></param>
+        /// <returns></returns>
+        public static IServiceCollection AddInteractionMatcher<TInteractionMatcher>(this IServiceCollection collection)
+            where TInteractionMatcher : class, IInteractionMatcher
+        {
+            collection.AddScoped<TInteractionMatcher>();
+
+            collection.Configure<DICommandGroupsProvider>(handler =>
+                handler.RegisterGroupType(typeof(TInteractionMatcher)));
 
             return collection;
         }

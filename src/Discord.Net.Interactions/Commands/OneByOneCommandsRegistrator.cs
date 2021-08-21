@@ -10,7 +10,7 @@ namespace Discord.Net.Interactions.Commands
     /// <summary>
     /// Command registrator registering commands one by one calling discord API, making it slow, because of rate limiting
     /// </summary>
-    public class OneByOneCommandsRegistrator<TInteractionInfo> : ICommandsRegistrator<TInteractionInfo>
+    public class OneByOneCommandsRegistrator<TInteractionInfo> : ICommandsRegistrator
         where TInteractionInfo : SlashCommandInfo
     {
         private readonly DiscordRestClient _client;
@@ -25,34 +25,37 @@ namespace Discord.Net.Interactions.Commands
             _cache = new CommandCache(client);
         }
 
-        public async Task RegisterCommandsAsync(ICommandHolder<TInteractionInfo> holder, CancellationToken token = default)
+        public async Task RegisterCommandsAsync(IInteractionHolder holder, CancellationToken token = default)
         {
-            foreach (HeldInteraction<TInteractionInfo> heldCommand in holder.Interactions)
+            foreach (TInteractionInfo heldCommand in holder.Interactions.Select(x => x.Info).OfType<TInteractionInfo>())
             {
                 try
                 {
-                    await RegisterCommandAsync(heldCommand.Info, token);
+                    await RegisterCommandAsync(heldCommand, token);
                 }
                 catch (Exception e)
                 {
                     throw new InvalidOperationException(
-                        $@"Could not register a command {heldCommand.Info.BuiltCommand.Name}", e);
+                        $@"Could not register a command {heldCommand.BuiltCommand.Name}", e);
                 }
             }
         }
 
-        public Task UnregisterCommandsAsync(ICommandHolder<TInteractionInfo> holder, CancellationToken token = default)
+        public Task UnregisterCommandsAsync(IInteractionHolder holder, CancellationToken token = default)
         {
             return Task.WhenAll(
-                holder.Interactions
-                    .Select(x => UnregisterCommandAsync(x.Info, token)));
+                holder.Interactions.Select(x => x.Info).OfType<TInteractionInfo>()
+                    .Select(x => UnregisterCommandAsync(x, token)));
         }
 
-        public Task RefreshCommandsAndPermissionsAsync(ICommandHolder<TInteractionInfo> holder,
+        public Task RefreshCommandsAndPermissionsAsync(IInteractionHolder holder,
             CancellationToken token = default)
         {
             return Task.WhenAll(
-                holder.Interactions.Select(x => RefreshCommandAsync(x.Info, token)));
+                holder.Interactions
+                    .Select(x => x.Info)
+                    .OfType<TInteractionInfo>()
+                    .Select(x => RefreshCommandAsync(x, token)));
         }
 
         private async Task RefreshCommandAsync(TInteractionInfo info, CancellationToken token = new CancellationToken())

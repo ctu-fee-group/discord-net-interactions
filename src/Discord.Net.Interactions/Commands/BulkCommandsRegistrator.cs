@@ -11,7 +11,7 @@ namespace Discord.Net.Interactions.Commands
     /// <summary>
     /// Registers all commands at once
     /// </summary>
-    public class BulkCommandsRegistrator<TInteractionInfo> : ICommandsRegistrator<TInteractionInfo>
+    public class BulkCommandsRegistrator<TInteractionInfo> : ICommandsRegistrator
         where TInteractionInfo : SlashCommandInfo
     {
         private readonly DiscordRestClient _client;
@@ -24,12 +24,12 @@ namespace Discord.Net.Interactions.Commands
             _commandPermissionsResolver = commandPermissionsResolver;
         }
 
-        public Task RegisterCommandsAsync(ICommandHolder<TInteractionInfo> holder, CancellationToken token = default)
+        public Task RegisterCommandsAsync(IInteractionHolder holder, CancellationToken token = default)
         {
             List<TInteractionInfo> globalInfos = new List<TInteractionInfo>();
             Dictionary<ulong, List<TInteractionInfo>> guildInfos = new Dictionary<ulong, List<TInteractionInfo>>();
 
-            foreach (TInteractionInfo info in holder.Interactions.Select(x => x.Info))
+            foreach (TInteractionInfo info in holder.Interactions.Select(x => x.Info).OfType<TInteractionInfo>())
             {
                 if (info.Global)
                 {
@@ -118,7 +118,8 @@ namespace Discord.Net.Interactions.Commands
             }
         }
 
-        public Task UnregisterCommandsAsync(ICommandHolder<TInteractionInfo> holder, CancellationToken token = default)
+        public Task UnregisterCommandsAsync(IInteractionHolder holder,
+            CancellationToken token = default)
         {
             List<Task> tasks = new List<Task>();
             tasks.Add(_client.BulkOverwriteGlobalCommands(Array.Empty<SlashCommandCreationProperties>(),
@@ -133,16 +134,18 @@ namespace Discord.Net.Interactions.Commands
             return Task.WhenAll(tasks);
         }
 
-        public Task RefreshCommandsAndPermissionsAsync(ICommandHolder<TInteractionInfo> holder,
+        public Task RefreshCommandsAndPermissionsAsync(IInteractionHolder holder,
             CancellationToken token = default)
         {
             return RegisterCommandsAsync(holder, token);
         }
 
-        private IEnumerable<ulong> GetGuilds(ICommandHolder<TInteractionInfo> holder)
+        private IEnumerable<ulong> GetGuilds(IInteractionHolder holder)
         {
             return holder.Interactions
-                .Select(x => x.Info.GuildId)
+                .Select(x => x.Info)
+                .OfType<TInteractionInfo>()
+                .Select(x => x.GuildId)
                 .Where(x => x is not null)
                 .Cast<ulong>()
                 .Distinct();

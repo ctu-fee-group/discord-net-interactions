@@ -10,17 +10,16 @@ namespace Discord.Net.Interactions.Executors
     /// <summary>
     /// Basic CommandExecutor calling Handler of the command in try catch, logging if there was an error
     /// </summary>
-    public class HandlerCommandExecutor<TInteractionInfo> : ICommandExecutor<TInteractionInfo>
-        where TInteractionInfo : InteractionInfo
+    public class HandlerInteractionExecutor : IInteractionExecutor
     {
         private readonly ILogger _logger;
         
-        public HandlerCommandExecutor(ILogger logger)
+        public HandlerInteractionExecutor(ILogger logger)
         {
             _logger = logger;
         }
         
-        public async Task TryExecuteInteraction(TInteractionInfo info, SocketInteraction interaction, CancellationToken token = default)
+        public async Task TryExecuteInteraction(InteractionInfo info, SocketInteraction interaction, CancellationToken token = default)
         {
             try
             {

@@ -7,8 +7,7 @@ namespace Discord.Net.Interactions.Abstractions
     /// <summary>
     /// Executor of a slash command interaction
     /// </summary>
-    public interface ICommandExecutor<in TInteractionInfo>
-        where TInteractionInfo : InteractionInfo
+    public interface IInteractionExecutor
     {
         /// <summary>
         /// Executes the command
@@ -17,6 +16,6 @@ namespace Discord.Net.Interactions.Abstractions
         /// <param name="interaction">Interaction</param>
         /// <param name="token">Cancel token</param>
         /// <returns></returns>
-        public Task TryExecuteInteraction(TInteractionInfo info, SocketInteraction interaction, CancellationToken token = default);
+        public Task TryExecuteInteraction(InteractionInfo info, SocketInteraction interaction, CancellationToken token = default);
     }
 }

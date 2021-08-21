@@ -13,21 +13,20 @@ namespace Discord.Net.Interactions.Handlers
     /// <remarks>
     /// Exposes basic command handling helper commands
     /// </remarks>
-    public class InteractionHandler<TInteractionInfo> : IDisposable
-        where TInteractionInfo : InteractionInfo
+    public class InteractionHandler : IDisposable
     {
-        protected readonly ICommandHolder<TInteractionInfo> _commandsHolder;
+        protected readonly IInteractionHolder InteractionsHolder;
         protected readonly CancellationTokenSource _commandsTokenSource;
         protected readonly DiscordSocketClient _client;
 
         protected readonly IInteractionMatcherProvider _interactionMatcherProvider;
 
-        public InteractionHandler(DiscordSocketClient client, ICommandHolder<TInteractionInfo> commandsHolder,
+        public InteractionHandler(DiscordSocketClient client, IInteractionHolder interactionsHolder,
             IInteractionMatcherProvider matcherProvider)
         {
             _interactionMatcherProvider = matcherProvider;
             _commandsTokenSource = new CancellationTokenSource();
-            _commandsHolder = commandsHolder;
+            InteractionsHolder = interactionsHolder;
             _client = client;
         }
 
@@ -49,13 +48,13 @@ namespace Discord.Net.Interactions.Handlers
         /// <returns></returns>
         protected virtual Task HandleInteractionCreated(SocketInteraction interaction)
         {
-            HeldInteraction<TInteractionInfo>? heldCommand =
-                _commandsHolder.TryMatch(_interactionMatcherProvider.GetMatchers(), interaction);
+            HeldInteraction? heldInteraction =
+                InteractionsHolder.TryMatch(_interactionMatcherProvider.GetMatchers(), interaction);
 
-            if (heldCommand != null)
+            if (heldInteraction != null)
             {
-                return heldCommand.Executor.TryExecuteInteraction(
-                    heldCommand.Info,
+                return heldInteraction.Executor.TryExecuteInteraction(
+                    heldInteraction.Info,
                     interaction,
                     _commandsTokenSource.Token);
             }
