@@ -2,6 +2,7 @@ using System;
 using Discord.Net.Interactions.Abstractions;
 using Discord.Net.Interactions.Commands;
 using Discord.Net.Interactions.Handlers;
+using Discord.Net.Interactions.InteractionMatchers;
 using Discord.Net.Interactions.Permissions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -89,6 +90,9 @@ namespace Discord.Net.Interactions.DI
                 .AddSingleton<InteractionHandler>()
                 .AddSingleton<InteractionsService<TInteractionInfo>>();
 
+            collection
+                .AddInteractionMatcher<SlashCommandMatcher>();
+
             configure?.Invoke(collection);
 
             return collection;
@@ -136,8 +140,8 @@ namespace Discord.Net.Interactions.DI
         {
             collection.AddScoped<TInteractionMatcher>();
 
-            collection.Configure<DICommandGroupsProvider>(handler =>
-                handler.RegisterGroupType(typeof(TInteractionMatcher)));
+            collection.Configure<DIInteractionMatcherProvider>(handler =>
+                handler.RegisterInteractionMatcher(typeof(TInteractionMatcher)));
 
             return collection;
         }
