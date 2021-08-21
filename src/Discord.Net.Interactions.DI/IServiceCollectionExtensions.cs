@@ -26,6 +26,20 @@ namespace Discord.Net.Interactions.DI
         }
         
         /// <summary>
+        /// Add bulk command registrator <see cref="BulkCommandsRegistrator{TSlashInfo}"/>>
+        /// </summary>
+        /// <param name="collection"></param>
+        /// <typeparam name="TSlashInfo"></typeparam>
+        /// <returns></returns>
+        public static IServiceCollection AddBulkCommandRegistrator<TSlashInfo>(
+            this IServiceCollection collection)
+            where TSlashInfo : SlashCommandInfo
+        {
+            return collection
+                .AddSingleton<ICommandsRegistrator<TSlashInfo>, BulkCommandsRegistrator<TSlashInfo>>();
+        }
+        
+        /// <summary>
         /// Add one by one command registrator <see cref="AddOneByOneCommandRegistrator{TSlashInfo}"/>>
         /// </summary>
         /// <param name="collection"></param>
