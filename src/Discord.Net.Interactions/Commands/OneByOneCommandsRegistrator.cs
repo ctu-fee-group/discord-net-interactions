@@ -8,7 +8,7 @@ using Discord.Rest;
 namespace Discord.Net.Interactions.Commands
 {
     /// <summary>
-    /// Command registrator registering commands one by one
+    /// Command registrator registering commands one by one calling discord API, making it slow, because of rate limiting
     /// </summary>
     public class OneByOneCommandsRegistrator<TSlashInfo> : ICommandsRegistrator<TSlashInfo>
         where TSlashInfo : SlashCommandInfo
