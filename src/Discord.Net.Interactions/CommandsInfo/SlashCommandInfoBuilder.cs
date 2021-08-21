@@ -31,9 +31,9 @@ namespace Discord.Net.Interactions.CommandsInfo
         }
     }
 
-    public abstract class SlashCommandInfoBuilder<TBuilder, TSlashInfo>
-        where TSlashInfo : SlashCommandInfo
-        where TBuilder : SlashCommandInfoBuilder<TBuilder, TSlashInfo>
+    public abstract class SlashCommandInfoBuilder<TBuilder, TInteractionInfo>
+        where TInteractionInfo : InteractionInfo
+        where TBuilder : SlashCommandInfoBuilder<TBuilder, TInteractionInfo>
     {
         private readonly TBuilder _builderInstance;
 
@@ -55,12 +55,12 @@ namespace Discord.Net.Interactions.CommandsInfo
         /// <summary>
         /// Handler that will be called when the command was executed by a user
         /// </summary>
-        public SlashCommandHandler? Handler { get; set; }
+        public DiscordInteractionHandler? Handler { get; set; }
 
         /// <summary>
         /// Handler that will be called when the command was executed by a user
         /// </summary>
-        public InstancedSlashCommandHandler? InstancedHandler { get; set; }
+        public InstancedDiscordInteractionHandler? InstancedHandler { get; set; }
 
         /// <summary>
         /// Builder used to build SlashCommandCreationOptions
@@ -83,7 +83,7 @@ namespace Discord.Net.Interactions.CommandsInfo
         /// </summary>
         /// <param name="handler"></param>
         /// <returns></returns>
-        public TBuilder WithHandler(SlashCommandHandler handler)
+        public TBuilder WithHandler(DiscordInteractionHandler handler)
         {
             Handler = handler;
             return _builderInstance;
@@ -94,7 +94,7 @@ namespace Discord.Net.Interactions.CommandsInfo
         /// </summary>
         /// <param name="handler"></param>
         /// <returns></returns>
-        public TBuilder WithHandler(InstancedSlashCommandHandler handler)
+        public TBuilder WithHandler(InstancedDiscordInteractionHandler handler)
         {
             InstancedHandler = handler;
             return _builderInstance;
@@ -128,6 +128,6 @@ namespace Discord.Net.Interactions.CommandsInfo
         /// </summary>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public abstract TSlashInfo Build();
+        public abstract TInteractionInfo Build();
     }
 }

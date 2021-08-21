@@ -12,12 +12,11 @@ namespace Discord.Net.Interactions.Executors
     ///
     /// The message will be sent ephemerally.
     /// </summary>
-    public class AutoDeferCommandExecutor<TSlashInfo> : ICommandExecutor<TSlashInfo>
-        where TSlashInfo : SlashCommandInfo
+    public class AutoDeferInteractionExecutor : IInteractionExecutor
     {
-        private readonly ICommandExecutor<TSlashInfo> _executor;
+        private readonly IInteractionExecutor _executor;
 
-        public AutoDeferCommandExecutor(ICommandExecutor<TSlashInfo> underlyingExecutor, string? message = "I am thinking...")
+        public AutoDeferInteractionExecutor(IInteractionExecutor underlyingExecutor, string? message = "I am thinking...")
         {
             _executor = underlyingExecutor;
             Message = message;
@@ -28,21 +27,21 @@ namespace Discord.Net.Interactions.Executors
         /// </summary>
         public string? Message { get; set; }
 
-        public async Task TryExecuteCommand(TSlashInfo info, SocketSlashCommand command,
+        public async Task TryExecuteInteraction(InteractionInfo info, SocketInteraction interaction,
             CancellationToken token = default)
         {
             if (Message is null)
             {
-                await command
+                await interaction
                     .DeferAsync(ephemeral: true, options: new RequestOptions() {CancelToken = token});
             }
             else
             {
-                await command
+                await interaction
                     .RespondAsync(Message, ephemeral: true, options: new RequestOptions() {CancelToken = token});
             }
 
-            await _executor.TryExecuteCommand(info, command, token);
+            await _executor.TryExecuteInteraction(info, interaction, token);
         }
     }
 }

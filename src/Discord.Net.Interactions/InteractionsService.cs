@@ -9,21 +9,21 @@ namespace Discord.Net.Interactions
     /// <summary>
     /// Service that will correctly initialize interactions handling along with initializing command groups
     /// </summary>
-    public class InteractionsService<TSlashInfo>
-        where TSlashInfo : SlashCommandInfo
+    public class InteractionsService<TInteractionInfo>
+        where TInteractionInfo : InteractionInfo
     {
-        protected readonly InteractionHandler<TSlashInfo> _interactionHandler;
-        protected readonly ICommandHolder<TSlashInfo> _commandHolder;
-        protected readonly ICommandsRegistrator<TSlashInfo> _commandRegistrator;
-        protected readonly ICommandsGroupProvider<TSlashInfo> _commandsGroupProvider;
+        protected readonly InteractionHandler _interactionHandler;
+        protected readonly IInteractionHolder InteractionHolder;
+        protected readonly ICommandsRegistrator _commandRegistrator;
+        protected readonly ICommandsGroupProvider _commandsGroupProvider;
         
-        public InteractionsService(InteractionHandler<TSlashInfo> interactionHandler,
-            ICommandHolder<TSlashInfo> commandHolder,
-            ICommandsRegistrator<TSlashInfo> commandsRegistrator,
-            ICommandsGroupProvider<TSlashInfo> commandsGroupProvider)
+        public InteractionsService(InteractionHandler interactionHandler,
+            IInteractionHolder interactionHolder,
+            ICommandsRegistrator commandsRegistrator,
+            ICommandsGroupProvider commandsGroupProvider)
         {
             _interactionHandler = interactionHandler;
-            _commandHolder = commandHolder;
+            InteractionHolder = interactionHolder;
             _commandRegistrator = commandsRegistrator;
             _commandsGroupProvider = commandsGroupProvider;
         }
@@ -35,9 +35,9 @@ namespace Discord.Net.Interactions
         public virtual async Task StartAsync(CancellationToken token = new CancellationToken())
         {
             await Task.WhenAll(_commandsGroupProvider.GetGroups()
-                .Select(x => x.SetupCommandsAsync(_commandHolder, token)));
+                .Select(x => x.SetupCommandsAsync(InteractionHolder, token)));
 
-            await _commandRegistrator.RegisterCommandsAsync(_commandHolder, token);
+            await _commandRegistrator.RegisterCommandsAsync(InteractionHolder, token);
             await _interactionHandler.StartAsync(token);
         }
 
@@ -48,7 +48,7 @@ namespace Discord.Net.Interactions
         /// <returns></returns>
         public virtual Task RefreshAsync(CancellationToken token = new CancellationToken())
         {
-            return _commandRegistrator.RefreshCommandsAndPermissionsAsync(_commandHolder, token);
+            return _commandRegistrator.RefreshCommandsAndPermissionsAsync(InteractionHolder, token);
         }
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace Discord.Net.Interactions
         /// <param name="token"></param>
         public virtual async Task StopAsync(CancellationToken token = new CancellationToken())
         {
-            await _commandRegistrator.UnregisterCommandsAsync(_commandHolder, token);
+            await _commandRegistrator.UnregisterCommandsAsync(InteractionHolder, token);
             await _interactionHandler.StopAsync(token);
         }
     }

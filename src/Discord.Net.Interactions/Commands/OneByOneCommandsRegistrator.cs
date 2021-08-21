@@ -10,14 +10,14 @@ namespace Discord.Net.Interactions.Commands
     /// <summary>
     /// Command registrator registering commands one by one calling discord API, making it slow, because of rate limiting
     /// </summary>
-    public class OneByOneCommandsRegistrator<TSlashInfo> : ICommandsRegistrator<TSlashInfo>
-        where TSlashInfo : SlashCommandInfo
+    public class OneByOneCommandsRegistrator<TInteractionInfo> : ICommandsRegistrator
+        where TInteractionInfo : SlashCommandInfo
     {
         private readonly DiscordRestClient _client;
         private readonly CommandCache _cache;
-        private readonly ICommandPermissionsResolver<TSlashInfo> _commandPermissionsResolver;
+        private readonly ICommandPermissionsResolver<TInteractionInfo> _commandPermissionsResolver;
 
-        public OneByOneCommandsRegistrator(ICommandPermissionsResolver<TSlashInfo> commandPermissionsResolver,
+        public OneByOneCommandsRegistrator(ICommandPermissionsResolver<TInteractionInfo> commandPermissionsResolver,
             DiscordRestClient client)
         {
             _commandPermissionsResolver = commandPermissionsResolver;
@@ -25,37 +25,40 @@ namespace Discord.Net.Interactions.Commands
             _cache = new CommandCache(client);
         }
 
-        public async Task RegisterCommandsAsync(ICommandHolder<TSlashInfo> holder, CancellationToken token = default)
+        public async Task RegisterCommandsAsync(IInteractionHolder holder, CancellationToken token = default)
         {
-            foreach (HeldSlashCommand<TSlashInfo> heldCommand in holder.Commands)
+            foreach (TInteractionInfo heldCommand in holder.Interactions.Select(x => x.Info).OfType<TInteractionInfo>())
             {
                 try
                 {
-                    await RegisterCommandAsync(heldCommand.Info, token);
+                    await RegisterCommandAsync(heldCommand, token);
                 }
                 catch (Exception e)
                 {
                     throw new InvalidOperationException(
-                        $@"Could not register a command {heldCommand.Info.BuiltCommand.Name}", e);
+                        $@"Could not register a command {heldCommand.BuiltCommand.Name}", e);
                 }
             }
         }
 
-        public Task UnregisterCommandsAsync(ICommandHolder<TSlashInfo> holder, CancellationToken token = default)
+        public Task UnregisterCommandsAsync(IInteractionHolder holder, CancellationToken token = default)
         {
             return Task.WhenAll(
-                holder.Commands
-                    .Select(x => UnregisterCommandAsync(x.Info, token)));
+                holder.Interactions.Select(x => x.Info).OfType<TInteractionInfo>()
+                    .Select(x => UnregisterCommandAsync(x, token)));
         }
 
-        public Task RefreshCommandsAndPermissionsAsync(ICommandHolder<TSlashInfo> holder,
+        public Task RefreshCommandsAndPermissionsAsync(IInteractionHolder holder,
             CancellationToken token = default)
         {
             return Task.WhenAll(
-                holder.Commands.Select(x => RefreshCommandAsync(x.Info, token)));
+                holder.Interactions
+                    .Select(x => x.Info)
+                    .OfType<TInteractionInfo>()
+                    .Select(x => RefreshCommandAsync(x, token)));
         }
 
-        private async Task RefreshCommandAsync(TSlashInfo info, CancellationToken token = new CancellationToken())
+        private async Task RefreshCommandAsync(TInteractionInfo info, CancellationToken token = new CancellationToken())
         {
             if (info.Command == null)
             {
@@ -66,7 +69,7 @@ namespace Discord.Net.Interactions.Commands
             await RefreshPermissions(info, token);
         }
 
-        private async Task<IApplicationCommand> RegisterCommandAsync(TSlashInfo info,
+        private async Task<IApplicationCommand> RegisterCommandAsync(TInteractionInfo info,
             CancellationToken token = new CancellationToken())
         {
             if (info.Command == null)
@@ -87,7 +90,7 @@ namespace Discord.Net.Interactions.Commands
             return info.Command;
         }
 
-        private async Task UnregisterCommandAsync(TSlashInfo info,
+        private async Task UnregisterCommandAsync(TInteractionInfo info,
             CancellationToken token = new CancellationToken())
         {
             if (info.Command != null)
@@ -102,7 +105,7 @@ namespace Discord.Net.Interactions.Commands
             info.Registered = false;
         }
 
-        private async Task ModifyCommand(TSlashInfo info, CancellationToken token = new CancellationToken())
+        private async Task ModifyCommand(TInteractionInfo info, CancellationToken token = new CancellationToken())
         {
             if (info.Command is RestGlobalCommand globalCommand &&
                 !info.Command.MatchesCreationProperties(info.BuiltCommand))
@@ -122,7 +125,7 @@ namespace Discord.Net.Interactions.Commands
             }
         }
 
-        private async Task RefreshPermissions(TSlashInfo info, CancellationToken token = new CancellationToken())
+        private async Task RefreshPermissions(TInteractionInfo info, CancellationToken token = new CancellationToken())
         {
             if (info.Command is RestGlobalCommand)
             {
@@ -143,7 +146,7 @@ namespace Discord.Net.Interactions.Commands
         }
 
         private async Task<SlashCommandCreationProperties> SetDefaultPermissionAsync(
-            TSlashInfo info,
+            TInteractionInfo info,
             CancellationToken token = new CancellationToken())
         {
             info.BuiltCommand.DefaultPermission =
@@ -152,7 +155,7 @@ namespace Discord.Net.Interactions.Commands
         }
 
         private async Task<ApplicationCommandProperties> ModifyCommandProperties(
-            TSlashInfo info,
+            TInteractionInfo info,
             ApplicationCommandProperties command,
             CancellationToken token = new CancellationToken())
         {
@@ -164,7 +167,7 @@ namespace Discord.Net.Interactions.Commands
             return command;
         }
 
-        private async Task<RestApplicationCommand> CreateGlobalCommand(TSlashInfo info,
+        private async Task<RestApplicationCommand> CreateGlobalCommand(TInteractionInfo info,
             CancellationToken token = new CancellationToken())
         {
             RestGlobalCommand? globalCommand = await _cache.GetGlobalCommand(info.BuiltCommand.Name, token);
@@ -188,7 +191,7 @@ namespace Discord.Net.Interactions.Commands
             return globalCommand;
         }
 
-        private async Task<RestApplicationCommand> CreateGuildCommand(TSlashInfo info,
+        private async Task<RestApplicationCommand> CreateGuildCommand(TInteractionInfo info,
             CancellationToken token = new CancellationToken())
         {
             if (info.GuildId == null)

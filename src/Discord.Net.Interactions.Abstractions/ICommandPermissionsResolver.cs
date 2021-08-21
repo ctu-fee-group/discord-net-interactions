@@ -7,9 +7,9 @@ namespace Discord.Net.Interactions.Abstractions
     /// <summary>
     /// Resolves permissions for slash commands
     /// </summary>
-    /// <typeparam name="TSlashInfo"></typeparam>
-    public interface ICommandPermissionsResolver<in TSlashInfo>
-        where TSlashInfo : SlashCommandInfo
+    /// <typeparam name="TInteractionInfo"></typeparam>
+    public interface ICommandPermissionsResolver<in TInteractionInfo>
+        where TInteractionInfo : InteractionInfo
     {
         /// <summary>
         /// Whether everyone should be able to execute specified command
@@ -20,7 +20,7 @@ namespace Discord.Net.Interactions.Abstractions
         /// <param name="info">Command that should have permissions checked</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public Task<bool> IsForEveryoneAsync(TSlashInfo info, CancellationToken cancellationToken);
+        public Task<bool> IsForEveryoneAsync(TInteractionInfo info, CancellationToken cancellationToken);
 
         /// <summary>
         /// If specified user has permission to execute specified command
@@ -29,7 +29,7 @@ namespace Discord.Net.Interactions.Abstractions
         /// <param name="info">Command that is being checked</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public Task<bool> HasPermissionAsync(IUser user, TSlashInfo info, CancellationToken cancellationToken);
+        public Task<bool> HasPermissionAsync(IUser user, TInteractionInfo info, CancellationToken cancellationToken);
 
         /// <summary>
         /// What permissions should the command be assigned
@@ -40,6 +40,6 @@ namespace Discord.Net.Interactions.Abstractions
         /// <param name="info"></param>
         /// <param name="cancellationToken"></param>
         /// <returns>Permissions of the command</returns>
-        public Task<IEnumerable<ApplicationCommandPermission>> GetCommandPermissionsAsync(TSlashInfo info, CancellationToken cancellationToken);
+        public Task<IEnumerable<ApplicationCommandPermission>> GetCommandPermissionsAsync(TInteractionInfo info, CancellationToken cancellationToken);
     }
 }

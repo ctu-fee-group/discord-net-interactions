@@ -10,17 +10,16 @@ namespace Discord.Net.Interactions.Executors
     /// <summary>
     /// Basic CommandExecutor calling Handler of the command in try catch, logging if there was an error
     /// </summary>
-    public class HandlerCommandExecutor<TSlashInfo> : ICommandExecutor<TSlashInfo>
-        where TSlashInfo : SlashCommandInfo
+    public class HandlerInteractionExecutor : IInteractionExecutor
     {
         private readonly ILogger _logger;
         
-        public HandlerCommandExecutor(ILogger logger)
+        public HandlerInteractionExecutor(ILogger logger)
         {
             _logger = logger;
         }
         
-        public async Task TryExecuteCommand(TSlashInfo info, SocketSlashCommand command, CancellationToken token = default)
+        public async Task TryExecuteInteraction(InteractionInfo info, SocketInteraction interaction, CancellationToken token = default)
         {
             try
             {
@@ -29,8 +28,8 @@ namespace Discord.Net.Interactions.Executors
                     throw new InvalidOperationException("HandlerCommandExecutor can handle only non-instanced commands");
                 }
                 
-                _logger.LogInformation($@"Handling command /{command.Data.Name} executed by {command.User.Mention} ({command.User})");
-                await info.Handler(command, token);
+                _logger.LogInformation($@"Handling interaction {interaction.GetName()} executed by {interaction.GetUser()}");
+                await info.Handler(interaction, token);
             }
             catch (OperationCanceledException)
             {
@@ -38,7 +37,7 @@ namespace Discord.Net.Interactions.Executors
             }
             catch (Exception e)
             {
-                _logger.LogError(e, $@"Command handler for command /{command.Data.Name} has thrown an exception");
+                _logger.LogError(e, $@"Interaction handler for {interaction.GetName()} has thrown an exception");
             }
         }
     }

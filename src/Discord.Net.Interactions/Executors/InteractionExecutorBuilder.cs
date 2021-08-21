@@ -4,28 +4,29 @@ using Microsoft.Extensions.Logging;
 
 namespace Discord.Net.Interactions.Executors
 {
-    public sealed class CommandExecutorBuilder
-        : CommandExecutorBuilder<CommandExecutorBuilder, SlashCommandInfo>
+    public sealed class InteractionExecutorBuilder
+        : InteractionExecutorBuilder<InteractionExecutorBuilder, SlashCommandInfo>
     { }
     
-    public sealed class CommandExecutorBuilder<TSlashInfo>
-        : CommandExecutorBuilder<CommandExecutorBuilder<TSlashInfo>, TSlashInfo>
-        where TSlashInfo : SlashCommandInfo
+    public sealed class InteractionExecutorBuilder<TInteractionInfo>
+        : InteractionExecutorBuilder<InteractionExecutorBuilder<TInteractionInfo>, TInteractionInfo>
+        where TInteractionInfo : InteractionInfo
     { }
 
-    public abstract class CommandExecutorBuilder<TBuilder, TSlashInfo>
-        where TBuilder : CommandExecutorBuilder<TBuilder, TSlashInfo>
-        where TSlashInfo : SlashCommandInfo
+    public abstract class InteractionExecutorBuilder<TBuilder, TInteractionInfo>
+        where TBuilder : InteractionExecutorBuilder<TBuilder, TInteractionInfo>
+        where TInteractionInfo : InteractionInfo
     {
         private readonly TBuilder _builderInstance;
         private bool _defer, _threadPool;
 
-        private ICommandExecutor<TSlashInfo>? _base;
-        private ICommandPermissionsResolver<TSlashInfo>? _commandPermissionsResolver;
+        private IInteractionExecutor? _base;
+        private ICommandPermissionsResolver<TInteractionInfo>? _commandPermissionsResolver;
+        private IInteractionHolder? _onlyOnceHolder;
         private string? _deferMessage;
         private ILogger? _logger;
 
-        protected CommandExecutorBuilder()
+        protected InteractionExecutorBuilder()
         {
             _builderInstance = (TBuilder)this;
         }
@@ -58,7 +59,7 @@ namespace Discord.Net.Interactions.Executors
         /// </summary>
         /// <param name="executor"></param>
         /// <returns></returns>
-        public TBuilder SetBaseExecutor(ICommandExecutor<TSlashInfo> executor)
+        public TBuilder SetBaseExecutor(IInteractionExecutor executor)
         {
             _base = executor;
             return _builderInstance;
@@ -69,11 +70,22 @@ namespace Discord.Net.Interactions.Executors
         /// </summary>
         /// <param name="commandPermissionsResolver">Permission resolver</param>
         /// <returns></returns>
-        public TBuilder WithPermissionCheck(ICommandPermissionsResolver<TSlashInfo> commandPermissionsResolver)
+        public TBuilder WithPermissionCheck(ICommandPermissionsResolver<TInteractionInfo> commandPermissionsResolver)
         {
             _commandPermissionsResolver = commandPermissionsResolver;
             return _builderInstance;
         }
+        
+        /// <summary>
+        /// Makes the interaction execute only once and then removes it from the holder
+        /// </summary>
+        /// <returns></returns>
+        public TBuilder OnlyOnce(IInteractionHolder holder)
+        {
+            _onlyOnceHolder = holder;
+            return _builderInstance;
+        }
+
 
         /// <summary>
         /// Add ThreadPoolCommandExecutor decorator
@@ -91,7 +103,7 @@ namespace Discord.Net.Interactions.Executors
         /// <returns></returns>
         /// <exception cref="InvalidCastException"></exception>
         /// <exception cref="InvalidOperationException"></exception>
-        public virtual ICommandExecutor<TSlashInfo> Build()
+        public virtual IInteractionExecutor Build()
         {
             if (_base is null)
             {
@@ -100,19 +112,14 @@ namespace Discord.Net.Interactions.Executors
                     throw new InvalidCastException("Logger must not be null");
                 }
                 
-                _base = new HandlerCommandExecutor<TSlashInfo>(_logger);
+                _base = new HandlerInteractionExecutor(_logger);
             }
 
-            ICommandExecutor<TSlashInfo> executor = _base;
-
-            if (_threadPool)
+            IInteractionExecutor executor = _base;
+            
+            if (_onlyOnceHolder != null)
             {
-                if (_logger is null)
-                {
-                    throw new InvalidOperationException("Logger must not be null");
-                }
-                
-                executor = new ThreadPoolCommandExecutor<TSlashInfo>(_logger, executor);
+                executor = new OnlyOnceInteractionExecutor(_onlyOnceHolder, executor);
             }
 
             if (_commandPermissionsResolver != null)
@@ -122,12 +129,22 @@ namespace Discord.Net.Interactions.Executors
                     throw new InvalidOperationException("Logger must not be null");
                 }
                 
-                executor = new PermissionCheckCommandExecutor<TSlashInfo>(_logger, _commandPermissionsResolver, executor);
+                executor = new PermissionCheckInteractionExecutor<TInteractionInfo>(_logger, _commandPermissionsResolver, executor);
             }
 
             if (_defer)
             {
-                executor = new AutoDeferCommandExecutor<TSlashInfo>(executor, _deferMessage);
+                executor = new AutoDeferInteractionExecutor(executor, _deferMessage);
+            }
+            
+            if (_threadPool)
+            {
+                if (_logger is null)
+                {
+                    throw new InvalidOperationException("Logger must not be null");
+                }
+                
+                executor = new ThreadPoolInteractionExecutor(_logger, executor);
             }
 
             return executor;

@@ -20,6 +20,18 @@ namespace Discord.Net.Interactions.HandlerCreator
     /// </summary>
     public class SubCommandHandlerCreator : ICommandHandlerCreator<string>
     {
+        private record HandlerMatcher<T>(Func<string, bool> Matcher,
+            Func<Delegate, SocketSlashCommand, SocketSlashCommandDataOption?, CancellationToken, Task> Handler,
+            T Instance);
+
+        public DiscordInteractionHandler CreateHandlerForCommand(IEnumerable<(Func<string, bool>, Delegate)> matchers) =>
+            GetCommandHandler(ParseMatchers<Delegate>(matchers, EfficientInvoker.ForDelegate, x => x.Method));
+
+        public InstancedDiscordInteractionHandler CreateInstancedHandlerForCommand(
+            IEnumerable<(Func<string, bool>, MethodInfo)> matchers) =>
+            GetInstancedCommandHandler(ParseMatchers<MethodInfo>(matchers,
+                EfficientInvoker.ForMethod, x => x));
+        
         private HandlerMatcher<T> GetMatchedHandler<T>(List<HandlerMatcher<T>> matchers, SocketSlashCommand command,
             out SocketSlashCommandDataOption? outOption, CancellationToken token)
         {
@@ -38,19 +50,7 @@ namespace Discord.Net.Interactions.HandlerCreator
 
             return handler;
         }
-
-        private record HandlerMatcher<T>(Func<string, bool> Matcher,
-            Func<Delegate, SocketSlashCommand, SocketSlashCommandDataOption?, CancellationToken, Task> Handler,
-            T Instance);
-
-        public SlashCommandHandler CreateHandlerForCommand(IEnumerable<(Func<string, bool>, Delegate)> matchers) =>
-            GetCommandHandler(ParseMatchers<Delegate>(matchers, EfficientInvoker.ForDelegate, x => x.Method));
-
-        public InstancedSlashCommandHandler CreateInstancedHandlerForCommand(
-            IEnumerable<(Func<string, bool>, MethodInfo)> matchers) =>
-            GetInstancedCommandHandler(ParseMatchers<MethodInfo>(matchers,
-                EfficientInvoker.ForMethod, x => x));
-
+        
         private List<HandlerMatcher<T>> ParseMatchers<T>(IEnumerable<(Func<string, bool>, T)> matchers,
             Func<T, EfficientInvoker> getInvoker, Func<T, MethodInfo> getMethodInfo)
         {
@@ -70,10 +70,15 @@ namespace Discord.Net.Interactions.HandlerCreator
         }
 
 
-        private InstancedSlashCommandHandler GetInstancedCommandHandler(List<HandlerMatcher<MethodInfo>> matchers)
+        private InstancedDiscordInteractionHandler GetInstancedCommandHandler(List<HandlerMatcher<MethodInfo>> matchers)
         {
-            return (instance, command, token) =>
+            return (instance, interaction, token) =>
             {
+                if (interaction is not SocketSlashCommand command)
+                {
+                    throw new InvalidOperationException("HandlerCreators can be used only for slash commands");
+                }
+                
                 HandlerMatcher<MethodInfo> matcher =
                     GetMatchedHandler(matchers, command, out SocketSlashCommandDataOption? option, token);
                 Delegate methodDelegate = matcher.Instance.CreateDelegate<Delegate>(instance);
@@ -84,10 +89,15 @@ namespace Discord.Net.Interactions.HandlerCreator
             };
         }
 
-        private SlashCommandHandler GetCommandHandler(List<HandlerMatcher<Delegate>> matchers)
+        private DiscordInteractionHandler GetCommandHandler(List<HandlerMatcher<Delegate>> matchers)
         {
-            return (command, token) =>
+            return (interaction, token) =>
             {
+                if (interaction is not SocketSlashCommand command)
+                {
+                    throw new InvalidOperationException("HandlerCreators can be used only for slash commands");
+                }
+                
                 token.ThrowIfCancellationRequested();
 
                 HandlerMatcher<Delegate> matchedHandler =

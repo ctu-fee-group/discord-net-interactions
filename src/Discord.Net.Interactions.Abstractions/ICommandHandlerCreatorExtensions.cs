@@ -14,7 +14,7 @@ namespace Discord.Net.Interactions.Abstractions
         /// <param name="deleg">Delegate to execute with the command</param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static SlashCommandHandler CreateHandlerForCommand<T>(this ICommandHandlerCreator<T> creator,
+        public static DiscordInteractionHandler CreateHandlerForCommand<T>(this ICommandHandlerCreator<T> creator,
             Delegate deleg)
         {
             return creator
@@ -29,7 +29,7 @@ namespace Discord.Net.Interactions.Abstractions
         /// <param name="matchers"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static SlashCommandHandler CreateHandlerForCommand<T>(this ICommandHandlerCreator<T> creator, params (Func<T, bool>, Delegate)[] matchers)
+        public static DiscordInteractionHandler CreateHandlerForCommand<T>(this ICommandHandlerCreator<T> creator, params (Func<T, bool>, Delegate)[] matchers)
         {
             return creator.CreateHandlerForCommand(matchers.AsEnumerable());
         }
@@ -42,7 +42,7 @@ namespace Discord.Net.Interactions.Abstractions
         /// <param name="matchers"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static SlashCommandHandler CreateHandlerForCommand<T>(this ICommandHandlerCreator<T> creator,
+        public static DiscordInteractionHandler CreateHandlerForCommand<T>(this ICommandHandlerCreator<T> creator,
             params (T, Delegate)[] matchers)
         where T : notnull
         {
@@ -59,7 +59,7 @@ namespace Discord.Net.Interactions.Abstractions
         /// <param name="deleg">Delegate to execute with the command</param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static InstancedSlashCommandHandler CreateInstancedHandlerForCommand<T>(this ICommandHandlerCreator<T> creator,
+        public static InstancedDiscordInteractionHandler CreateInstancedHandlerForCommand<T>(this ICommandHandlerCreator<T> creator,
             MethodInfo methodInfo)
         {
             return creator
@@ -74,7 +74,7 @@ namespace Discord.Net.Interactions.Abstractions
         /// <param name="matchers"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static InstancedSlashCommandHandler CreateInstancedHandlerForCommand<T>(this ICommandHandlerCreator<T> creator, params (Func<T, bool>, MethodInfo)[] matchers)
+        public static InstancedDiscordInteractionHandler CreateInstancedHandlerForCommand<T>(this ICommandHandlerCreator<T> creator, params (Func<T, bool>, MethodInfo)[] matchers)
         {
             return creator.CreateInstancedHandlerForCommand(matchers.AsEnumerable());
         }
@@ -87,7 +87,7 @@ namespace Discord.Net.Interactions.Abstractions
         /// <param name="matchers"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static InstancedSlashCommandHandler CreateInstancedHandlerForCommand<T>(this ICommandHandlerCreator<T> creator,
+        public static InstancedDiscordInteractionHandler CreateInstancedHandlerForCommand<T>(this ICommandHandlerCreator<T> creator,
             params (T, MethodInfo)[] matchers)
         where T : notnull
         {

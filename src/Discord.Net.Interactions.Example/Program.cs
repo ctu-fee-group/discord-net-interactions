@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Discord.Net.Interactions.Abstractions;
 using Discord.Net.Interactions.DI;
 using Discord.Net.Interactions.Example.Commands;
+using Discord.Net.Interactions.Executors;
 using Discord.Rest;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
@@ -40,11 +41,9 @@ namespace Discord.Net.Interactions.Example
                 .AddSingleton<DiscordRestClient>(p => p.GetRequiredService<DiscordSocketClient>().Rest)
                 .AddDefaultInteractionService<SlashCommandInfo>()
                 .AddBulkCommandRegistrator<SlashCommandInfo>() // commands will be registered one by one
-                .AddEveryoneCommandPermissionResolver<
-                    SlashCommandInfo>() // everyone will have permission to use the command
-                .AddCommandGroup<ControlCommandGroup,
-                    SlashCommandInfo>() // Group PingCommandGroup will be registered and used
-                .AddCommandGroup<PingCommandGroup, SlashCommandInfo>()
+                .AddEveryoneCommandPermissionResolver<SlashCommandInfo>() // everyone will have permission to use the command
+                .AddCommandGroup<ControlCommandGroup>() // Group PingCommandGroup will be registered and used
+                .AddCommandGroup<PingCommandGroup>()
                 // logging
                 .AddLogging(builder => builder
                     .AddConsole())
@@ -64,7 +63,7 @@ namespace Discord.Net.Interactions.Example
         {
             await client.LoginAsync(TokenType.Bot, options.Token);
             await client.StartAsync();
-
+            
             client.Log += message =>
             {
                 logger.LogInformation(message.Exception, message.Message);

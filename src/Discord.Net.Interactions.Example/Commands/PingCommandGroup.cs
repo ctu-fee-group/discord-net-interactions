@@ -10,7 +10,7 @@ using Microsoft.Extensions.Options;
 
 namespace Discord.Net.Interactions.Example.Commands
 {
-    public class PingCommandGroup : ICommandGroup<SlashCommandInfo>
+    public class PingCommandGroup : ICommandGroup
     {
         public enum Feedback : long // Important to inherit from long as discord.net returns long when calling command
         {
@@ -28,34 +28,34 @@ namespace Discord.Net.Interactions.Example.Commands
             _options = options.Value;
         }
 
-        private Task HandlePing(SocketSlashCommand command, IMentionable mentionable, CancellationToken cancellationToken)
+        private Task HandlePing(SocketInteraction interaction, IMentionable mentionable, CancellationToken cancellationToken)
         {
-            return command
+            return interaction
                 .RespondAsync($"Pong {mentionable.Mention}");
         }
 
-        private async Task HandleFeedbackPositive(SocketSlashCommand command, Feedback feedback, CancellationToken cancellationToken)
+        private async Task HandleFeedbackPositive(SocketInteraction interaction, Feedback feedback, CancellationToken cancellationToken)
         {
-            await command.RespondAsync("Thank you for your positive feedback!", ephemeral: true);
-            await command.FollowupAsync($"User {command.User.Mention} left a feedback {feedback}");
+            await interaction.RespondAsync("Thank you for your positive feedback!", ephemeral: true);
+            await interaction.FollowupAsync($"User {interaction.GetUser()} left a feedback {feedback}");
         }
         
-        private async Task HandleFeedbackNegative(SocketSlashCommand command, Feedback feedback, CancellationToken cancellationToken)
+        private async Task HandleFeedbackNegative(SocketInteraction interaction, Feedback feedback, CancellationToken cancellationToken)
         {
-            await command.RespondAsync("Thank you for your negative feedback!", ephemeral: true);
-            await command.FollowupAsync($"User {command.User.Mention} left a feedback {feedback}");
+            await interaction.RespondAsync("Thank you for your negative feedback!", ephemeral: true);
+            await interaction.FollowupAsync($"User {interaction.GetUser()} left a feedback {feedback}");
         }
         
-        public Task SetupCommandsAsync(ICommandHolder<SlashCommandInfo> holder, CancellationToken token = new CancellationToken())
+        public Task SetupCommandsAsync(IInteractionHolder holder, CancellationToken token = new CancellationToken())
         {
             // Create handler for ping command calling correctly HandlePing method
-            SlashCommandHandler pingHandler = new PlainCommandHandlerCreator()
+            DiscordInteractionHandler pingHandler = new PlainCommandHandlerCreator()
                 .CreateHandlerForCommand((CommandDelegate<IMentionable>)HandlePing);
 
             // Create handler for /feedback positive/negative sub command
             // Calling HandleFeedbackPositive for /feedback positive
             // and HandleFeedbackNegative for /feedback negative
-            SlashCommandHandler feedbackHandler = new SubCommandHandlerCreator()
+            DiscordInteractionHandler feedbackHandler = new SubCommandHandlerCreator()
                 .CreateHandlerForCommand(
                     ("positive", (CommandDelegate<Feedback>)HandleFeedbackPositive),
                     ("negative", (CommandDelegate<Feedback>)HandleFeedbackNegative));
@@ -108,12 +108,12 @@ namespace Discord.Net.Interactions.Example.Commands
                 .Build();
             
             // Create executor along with logging in case of an error
-            ICommandExecutor<SlashCommandInfo> executor = new CommandExecutorBuilder()
+            IInteractionExecutor executor = new InteractionExecutorBuilder()
                 .WithLogger(_logger)
                 .Build();
 
-            holder.AddCommand(pingInfo, executor);
-            holder.AddCommand(feedbackInfo, executor);
+            holder.AddInteraction(pingInfo, executor);
+            holder.AddInteraction(feedbackInfo, executor);
             return Task.CompletedTask;
         }
     }

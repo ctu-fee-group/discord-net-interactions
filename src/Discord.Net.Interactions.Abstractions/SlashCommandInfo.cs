@@ -7,46 +7,41 @@ using Discord.WebSocket;
 namespace Discord.Net.Interactions.Abstractions
 {
     /// <summary>
-    /// Handler function of slash commands without instance, <see cref="InstancedSlashCommandHandler"/> for
+    /// Handler function of slash commands without instance, <see cref="InstancedDiscordInteractionHandler"/> for
     /// command handler that can be invoked with different instances
     /// </summary>
-    public delegate Task SlashCommandHandler(SocketSlashCommand command,
+    public delegate Task DiscordInteractionHandler(SocketInteraction interaction,
         CancellationToken token = new CancellationToken());
 
     /// <summary>
     /// Handler function of slash commands supporting invoking with different class instances
     /// for holding context per command
     /// </summary>
-    public delegate Task InstancedSlashCommandHandler(object classInstance, SocketSlashCommand command,
+    public delegate Task InstancedDiscordInteractionHandler(object classInstance, SocketInteraction interaction,
         CancellationToken token = new CancellationToken());
 
     /// <summary>
     /// Information about a slash command
     /// </summary>
-    public class SlashCommandInfo
+    public class SlashCommandInfo : InteractionInfo
     {
-        private SlashCommandInfo(SlashCommandBuilder builder, bool global, ulong? guildId)
+        public SlashCommandInfo(SlashCommandBuilder builder,
+            DiscordInteractionHandler handler, bool global, ulong? guildId)
+        : base(handler)
         {
-
             BuiltCommand = builder.Build();
             Global = global;
             GuildId = guildId;
         }
         
         public SlashCommandInfo(SlashCommandBuilder builder,
-            SlashCommandHandler handler, bool global, ulong? guildId)
-        : this (builder, global, guildId)
+            InstancedDiscordInteractionHandler instancedHandler, bool global, ulong? guildId)
+            : base (instancedHandler)
         {
 
-            Handler = handler;
-        }
-        
-        public SlashCommandInfo(SlashCommandBuilder builder,
-            InstancedSlashCommandHandler instancedHandler, bool global, ulong? guildId)
-            : this (builder, global, guildId)
-        {
-
-            InstancedHandler = instancedHandler;
+            BuiltCommand = builder.Build();
+            Global = global;
+            GuildId = guildId;
         }
 
         /// <summary>
@@ -63,16 +58,6 @@ namespace Discord.Net.Interactions.Abstractions
         /// What guild to add the command to
         /// </summary>
         public ulong? GuildId { get; }
-
-        /// <summary>
-        /// What handler to execute when command execution is requested
-        /// </summary>
-        public SlashCommandHandler? Handler { get; }
-        
-        /// <summary>
-        /// What handler to execute when command execution is requested
-        /// </summary>
-        public InstancedSlashCommandHandler? InstancedHandler { get; }
 
         /// <summary>
         /// Built command that is set after calling Build()
