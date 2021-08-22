@@ -61,8 +61,9 @@ namespace Discord.Net.Interactions.HandlerCreator
                     return new HandlerMatcher<T>(
                         x.Item1,
                         CommandHandlerCreatorUtils.CreateHandler<SocketSlashCommandDataOption?>(invoker,
-                            (data, option) =>
-                                CommandHandlerCreatorUtils.GetParametersFromOptions(getMethodInfo(x.Item2), option?.Options)),
+                            CommandHandlerCreatorUtils.CreateSlashCommandInfo(getMethodInfo(x.Item2)),
+                            (data, option, info) =>
+                                CommandHandlerCreatorUtils.GetParametersFromOptions(info, option?.Options)),
                         x.Item2
                     );
                 })

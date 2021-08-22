@@ -21,7 +21,8 @@ namespace Discord.Net.Interactions.HandlerCreator
             Delegate matchedDelegate = GetMatched<Delegate>(valueTuples);
             InstancedDiscordInteractionHandler instancedHandler = CommandHandlerCreatorUtils.CreateHandler(
                 EfficientInvoker.ForDelegate(matchedDelegate),
-                (data => CommandHandlerCreatorUtils.GetParametersFromOptions(matchedDelegate.Method, data.Options)));
+                CommandHandlerCreatorUtils.CreateSlashCommandInfo(matchedDelegate.Method),
+                ((data, info) => CommandHandlerCreatorUtils.GetParametersFromOptions(info, data.Options)));
 
             return (command, token) => instancedHandler(matchedDelegate, command, token);
         }
@@ -34,7 +35,8 @@ namespace Discord.Net.Interactions.HandlerCreator
             EfficientInvoker invoker = EfficientInvoker.ForMethod(matchedMethod);
 
             return GetHandler(CommandHandlerCreatorUtils.CreateHandler(invoker,
-                (data => CommandHandlerCreatorUtils.GetParametersFromOptions(matchedMethod, data.Options))));
+                CommandHandlerCreatorUtils.CreateSlashCommandInfo(matchedMethod),
+                ((data, info) => CommandHandlerCreatorUtils.GetParametersFromOptions(info, data.Options))));
         }
 
         private T GetMatched<T>((Func<string, bool>, T)[] valueTuples)
