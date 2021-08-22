@@ -51,6 +51,11 @@ namespace Discord.Net.Interactions.Verifier
         public CommandVerifier(DiscordSocketClient client, SocketInteraction interaction, ILogger logger,
             bool firstResponse = true)
         {
+            if (interaction is not SocketSlashCommand command)
+            {
+                throw new ArgumentException("SocketInteraction must be of type SocketSlashCommand");
+            }
+            
             _tasks = new List<Task>();
             _task = Task.FromResult<int>(0);
             _failMessages = new List<VerifyFailMessage>();
