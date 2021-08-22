@@ -26,7 +26,7 @@ namespace Discord.Net.Interactions.Example
             await RunBot(
                 services.GetRequiredService<DiscordSocketClient>(),
                 services.GetRequiredService<IOptions<BotOptions>>().Value,
-                services.GetRequiredService<InteractionsService<SlashCommandInfo>>(),
+                services.GetRequiredService<InteractionsService>(),
                 services.GetRequiredService<ILogger<Program>>());
         }
 
@@ -39,7 +39,7 @@ namespace Discord.Net.Interactions.Example
             return new ServiceCollection()
                 .AddSingleton<DiscordSocketClient>()
                 .AddSingleton<DiscordRestClient>(p => p.GetRequiredService<DiscordSocketClient>().Rest)
-                .AddDefaultInteractionService<SlashCommandInfo>()
+                .AddDefaultInteractionService()
                 .AddBulkCommandRegistrator<SlashCommandInfo>() // commands will be registered one by one
                 .AddEveryoneCommandPermissionResolver<SlashCommandInfo>() // everyone will have permission to use the command
                 .AddCommandGroup<ControlCommandGroup>() // Group PingCommandGroup will be registered and used
@@ -59,7 +59,7 @@ namespace Discord.Net.Interactions.Example
         }
 
         static async Task RunBot(DiscordSocketClient client, BotOptions options,
-            InteractionsService<SlashCommandInfo> interactionsService, ILogger logger)
+            InteractionsService interactionsService, ILogger logger)
         {
             await client.LoginAsync(TokenType.Bot, options.Token);
             await client.StartAsync();
