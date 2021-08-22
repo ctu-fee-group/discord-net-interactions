@@ -48,7 +48,7 @@ namespace Discord.Net.Interactions.Verifier
         /// <param name="command">What command data are being verified</param>
         /// <param name="logger">What logger to log into verification problems</param>
         /// <param name="firstResponse">If true, RespondAsync on the command will be used to report verification problems, if false, FollowupAsycn will be used instead</param>
-        public CommandVerifier(DiscordSocketClient client, SocketSlashCommand command, ILogger logger,
+        public CommandVerifier(DiscordSocketClient client, SocketInteraction interaction, ILogger logger,
             bool firstResponse = true)
         {
             _tasks = new List<Task>();
@@ -60,7 +60,7 @@ namespace Discord.Net.Interactions.Verifier
             Success = true;
 
             Client = client;
-            Command = command;
+            Interaction = interaction;
             Logger = logger;
         }
 
@@ -77,7 +77,7 @@ namespace Discord.Net.Interactions.Verifier
         /// <summary>
         /// What command is being verified
         /// </summary>
-        public SocketSlashCommand Command { get; }
+        public SocketInteraction Interaction { get; }
 
         /// <summary>
         /// Result of the verification with correct data set
@@ -130,7 +130,7 @@ namespace Discord.Net.Interactions.Verifier
                 }
 
                 string response = responseMessage.ToString();
-                Logger.LogWarning($@"Command {Command.Data.Name} executed by {Command.User}: " + response);
+                Logger.LogWarning($@"Command {Interaction.GetName()} executed by {Interaction.User}: " + response);
                 await Respond(response);
             }
 
@@ -140,8 +140,8 @@ namespace Discord.Net.Interactions.Verifier
         private Task Respond(string response)
         {
             return _firstResponse
-                ? Command.RespondChunkAsync(response, ephemeral: true)
-                : Command.FollowupChunkAsync(response, ephemeral: true);
+                ? Interaction.RespondChunkAsync(response, ephemeral: true)
+                : Interaction.FollowupChunkAsync(response, ephemeral: true);
         }
 
         /// <summary>
