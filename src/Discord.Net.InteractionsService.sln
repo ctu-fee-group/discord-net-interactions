@@ -9,6 +9,13 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{4EED7ED4-1974-4C9C-9AE8-DED27E24DE59}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Discord.Net.Interactions.Example", "Discord.Net.Interactions.Example\Discord.Net.Interactions.Example.csproj", "{95A654AA-0840-4994-8F5F-654AF0BF696D}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Discord.Net", "Discord.Net", "{1A8BA253-3C69-4C44-B9B5-A2232508095F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Discord.Net.Core", "..\libs\Discord.Net-Labs\src\Discord.Net.Core\Discord.Net.Core.csproj", "{421FF6CC-94F0-4F9A-B57E-F5B8619E2C83}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Discord.Net.Rest", "..\libs\Discord.Net-Labs\src\Discord.Net.Rest\Discord.Net.Rest.csproj", "{95549F05-4ED9-4750-90A1-76ABA0897662}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Discord.Net.WebSocket", "..\libs\Discord.Net-Labs\src\Discord.Net.WebSocket\Discord.Net.WebSocket.csproj", "{FA26A02E-46DD-4AA7-AEFE-8043F148038F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -32,8 +39,23 @@ Global
 		{95A654AA-0840-4994-8F5F-654AF0BF696D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{95A654AA-0840-4994-8F5F-654AF0BF696D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{95A654AA-0840-4994-8F5F-654AF0BF696D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{421FF6CC-94F0-4F9A-B57E-F5B8619E2C83}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{421FF6CC-94F0-4F9A-B57E-F5B8619E2C83}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{421FF6CC-94F0-4F9A-B57E-F5B8619E2C83}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{421FF6CC-94F0-4F9A-B57E-F5B8619E2C83}.Release|Any CPU.Build.0 = Release|Any CPU
+		{95549F05-4ED9-4750-90A1-76ABA0897662}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{95549F05-4ED9-4750-90A1-76ABA0897662}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{95549F05-4ED9-4750-90A1-76ABA0897662}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{95549F05-4ED9-4750-90A1-76ABA0897662}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FA26A02E-46DD-4AA7-AEFE-8043F148038F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA26A02E-46DD-4AA7-AEFE-8043F148038F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA26A02E-46DD-4AA7-AEFE-8043F148038F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA26A02E-46DD-4AA7-AEFE-8043F148038F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{95A654AA-0840-4994-8F5F-654AF0BF696D} = {4EED7ED4-1974-4C9C-9AE8-DED27E24DE59}
+		{421FF6CC-94F0-4F9A-B57E-F5B8619E2C83} = {1A8BA253-3C69-4C44-B9B5-A2232508095F}
+		{95549F05-4ED9-4750-90A1-76ABA0897662} = {1A8BA253-3C69-4C44-B9B5-A2232508095F}
+		{FA26A02E-46DD-4AA7-AEFE-8043F148038F} = {1A8BA253-3C69-4C44-B9B5-A2232508095F}
 	EndGlobalSection
 EndGlobal
