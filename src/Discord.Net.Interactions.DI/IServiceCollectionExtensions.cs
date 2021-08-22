@@ -60,9 +60,8 @@ namespace Discord.Net.Interactions.DI
         /// <param name="collection"></param>
         /// <param name="configure">Function that is to make code more readable, it is invoken with the same collection that was passed to the function. It should register CommandGroups</param>
         /// <returns></returns>
-        public static IServiceCollection AddDefaultInteractionService<TInteractionInfo>(this IServiceCollection collection,
+        public static IServiceCollection AddDefaultInteractionService(this IServiceCollection collection,
             Action<IServiceCollection>? configure = null)
-            where TInteractionInfo : InteractionInfo
         {
             collection
                 .AddOptions<DICommandGroupsProvider>();
@@ -88,7 +87,7 @@ namespace Discord.Net.Interactions.DI
                 })
                 .AddSingleton<IInteractionHolder, ThreadSafeInteractionHolder>()
                 .AddSingleton<InteractionHandler>()
-                .AddSingleton<InteractionsService<TInteractionInfo>>();
+                .AddSingleton<InteractionsService>();
 
             collection
                 .AddInteractionMatcher<SlashCommandMatcher>()

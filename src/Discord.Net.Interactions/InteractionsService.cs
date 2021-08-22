@@ -9,8 +9,7 @@ namespace Discord.Net.Interactions
     /// <summary>
     /// Service that will correctly initialize interactions handling along with initializing command groups
     /// </summary>
-    public class InteractionsService<TInteractionInfo>
-        where TInteractionInfo : InteractionInfo
+    public class InteractionsService
     {
         protected readonly InteractionHandler _interactionHandler;
         protected readonly IInteractionHolder InteractionHolder;
