@@ -17,7 +17,7 @@ namespace Discord.Net.Interactions.InteractionMatchers
                 return false;
             }
 
-            return componentInfo.MessageId == component.Message.Id &&
+            return (componentInfo.MessageId is null || componentInfo.MessageId == component.Message.Id) &&
                    (componentInfo.CustomId is null || componentInfo.CustomId == component.Data.CustomId) &&
                    (componentInfo.User is null || componentInfo.User.Id == component.User.Id);
         }
