@@ -6,12 +6,14 @@ namespace Discord.Net.Interactions.Executors
 {
     public sealed class InteractionExecutorBuilder
         : InteractionExecutorBuilder<InteractionExecutorBuilder, SlashCommandInfo>
-    { }
-    
+    {
+    }
+
     public sealed class InteractionExecutorBuilder<TInteractionInfo>
         : InteractionExecutorBuilder<InteractionExecutorBuilder<TInteractionInfo>, TInteractionInfo>
         where TInteractionInfo : InteractionInfo
-    { }
+    {
+    }
 
     public abstract class InteractionExecutorBuilder<TBuilder, TInteractionInfo>
         where TBuilder : InteractionExecutorBuilder<TBuilder, TInteractionInfo>
@@ -25,6 +27,9 @@ namespace Discord.Net.Interactions.Executors
         private IInteractionHolder? _onlyOnceHolder;
         private string? _deferMessage;
         private ILogger? _logger;
+
+        private IInteractionHolder? _removeInteractionsHolder;
+        private InteractionInfo[]? _removeInteractions;
 
         protected InteractionExecutorBuilder()
         {
@@ -42,7 +47,7 @@ namespace Discord.Net.Interactions.Executors
             _deferMessage = message;
             return _builderInstance;
         }
-        
+
         /// <summary>
         /// Logger to initialize ThreadPoolCommandExecutor or base executor
         /// </summary>
@@ -64,7 +69,7 @@ namespace Discord.Net.Interactions.Executors
             _base = executor;
             return _builderInstance;
         }
-        
+
         /// <summary>
         /// Adds permission check
         /// </summary>
@@ -75,7 +80,7 @@ namespace Discord.Net.Interactions.Executors
             _commandPermissionsResolver = commandPermissionsResolver;
             return _builderInstance;
         }
-        
+
         /// <summary>
         /// Makes the interaction execute only once and then removes it from the holder
         /// </summary>
@@ -98,6 +103,17 @@ namespace Discord.Net.Interactions.Executors
         }
 
         /// <summary>
+        /// Add Remove specified Interactions decorator for removing interaction from the holder that are no longer needed
+        /// </summary>
+        /// <returns></returns>
+        public TBuilder WithRemoveInteractions(IInteractionHolder holder, params InteractionInfo[] interactionInfos)
+        {
+            _removeInteractionsHolder = holder;
+            _removeInteractions = interactionInfos;
+            return _builderInstance;
+        }
+
+        /// <summary>
         /// Creates ICommandExecutor based on configuration of builder
         /// </summary>
         /// <returns></returns>
@@ -111,12 +127,12 @@ namespace Discord.Net.Interactions.Executors
                 {
                     throw new InvalidCastException("Logger must not be null");
                 }
-                
+
                 _base = new HandlerInteractionExecutor(_logger);
             }
 
             IInteractionExecutor executor = _base;
-            
+
             if (_onlyOnceHolder != null)
             {
                 executor = new OnlyOnceInteractionExecutor(_onlyOnceHolder, executor);
@@ -128,22 +144,28 @@ namespace Discord.Net.Interactions.Executors
                 {
                     throw new InvalidOperationException("Logger must not be null");
                 }
-                
-                executor = new PermissionCheckInteractionExecutor<TInteractionInfo>(_logger, _commandPermissionsResolver, executor);
+
+                executor = new PermissionCheckInteractionExecutor<TInteractionInfo>(_logger,
+                    _commandPermissionsResolver, executor);
             }
 
             if (_defer)
             {
                 executor = new AutoDeferInteractionExecutor(executor, _deferMessage);
             }
-            
+
+            if (_removeInteractionsHolder is not null && _removeInteractions is not null)
+            {
+                executor = new RemoveInteractionsExecutor(_removeInteractionsHolder, _removeInteractions, executor);
+            }
+
             if (_threadPool)
             {
                 if (_logger is null)
                 {
                     throw new InvalidOperationException("Logger must not be null");
                 }
-                
+
                 executor = new ThreadPoolInteractionExecutor(_logger, executor);
             }
 
