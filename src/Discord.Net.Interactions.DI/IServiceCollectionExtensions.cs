@@ -1,6 +1,7 @@
 using System;
 using Discord.Net.Interactions.Abstractions;
 using Discord.Net.Interactions.Commands;
+using Discord.Net.Interactions.Components;
 using Discord.Net.Interactions.Handlers;
 using Discord.Net.Interactions.InteractionMatchers;
 using Discord.Net.Interactions.Permissions;
@@ -86,6 +87,7 @@ namespace Discord.Net.Interactions.DI
                     return provider;
                 })
                 .AddSingleton<IInteractionHolder, ThreadSafeInteractionHolder>()
+                .AddSingleton<IComponentHelper, ComponentHelper>()
                 .AddSingleton<InteractionHandler>()
                 .AddSingleton<InteractionsService>();
 
