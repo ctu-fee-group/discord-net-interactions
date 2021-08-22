@@ -1,7 +1,6 @@
 # Discord Net Labs Interactions
 
-Currently works with Labs only! Currently only slash commands are supported!
-Support for message components will be added at some point.
+Currently works with Labs only! Supports slash commands and message components.
 
 ## Parts of the library
 
@@ -28,9 +27,9 @@ achieved by making splitting the library to multiple parts and layers.
 
 Example can be found in `Discord.Net.Interactions.Example`.
 
-The use basically lays in creating `CommandHolder` for storing the commands,
+The use basically lays in creating `InteractionHolder` for storing the interactions,
 `CommandRegistrator` for registering the commands (one by one, bulk etc.),
-`CommandExecutor` for executing the commands on different thread or auto deferring
+`InteractionExecutor` for executing the interactions on different thread or auto deferring
 them. And lastly implementing `ICommandGroup` to setup your commands.
 `InteractionsService` is used to connect these together along
 with handling the interactions.
