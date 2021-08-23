@@ -6,4 +6,8 @@
         <RootNamespace>Discord.Net.Interactions.Example.Controllers</RootNamespace>
     </PropertyGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\Discord.Net.Interactions.Controllers\Discord.Net.Interactions.Controllers.csproj" />
+    </ItemGroup>
+
 </Project>
