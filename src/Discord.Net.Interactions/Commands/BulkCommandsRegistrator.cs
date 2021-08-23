@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -16,72 +17,76 @@ namespace Discord.Net.Interactions.Commands
     {
         private readonly DiscordRestClient _client;
         private readonly ICommandPermissionsResolver<TInteractionInfo> _commandPermissionsResolver;
+        private readonly IGuildResolver<TInteractionInfo> _guildResolver;
 
         public BulkCommandsRegistrator(DiscordRestClient client,
-            ICommandPermissionsResolver<TInteractionInfo> commandPermissionsResolver)
+            ICommandPermissionsResolver<TInteractionInfo> commandPermissionsResolver,
+            IGuildResolver<TInteractionInfo> guildResolver)
         {
+            _guildResolver = guildResolver;
             _client = client;
             _commandPermissionsResolver = commandPermissionsResolver;
         }
 
-        public Task RegisterCommandsAsync(IInteractionHolder holder, CancellationToken token = default)
+        public async Task RegisterCommandsAsync(IInteractionHolder holder, CancellationToken token = default)
         {
-            List<TInteractionInfo> globalInfos = new List<TInteractionInfo>();
-            Dictionary<ulong, List<TInteractionInfo>> guildInfos = new Dictionary<ulong, List<TInteractionInfo>>();
+            var globalInfos = new List<TInteractionInfo>();
+            var guildInfos = new List<TInteractionInfo>();
 
-            foreach (TInteractionInfo info in holder.Interactions.Select(x => x.Info).OfType<TInteractionInfo>())
+            foreach (var info in holder.Interactions.Select(x => x.Info).OfType<TInteractionInfo>())
             {
+                info.BuiltCommand.DefaultPermission = await _commandPermissionsResolver.IsForEveryoneAsync(info, token);
                 if (info.Global)
                 {
                     globalInfos.Add(info);
                 }
                 else
                 {
-                    if (info.GuildId is null)
-                    {
-                        throw new InvalidOperationException("Guild id cannot be null when the command is not global");
-                    }
-
-                    if (!guildInfos.TryGetValue((ulong)info.GuildId, out List<TInteractionInfo>? specificGuildInfos))
-                    {
-                        specificGuildInfos = new List<TInteractionInfo>();
-                        guildInfos.Add((ulong)info.GuildId, specificGuildInfos);
-                    }
-
-                    specificGuildInfos.Add(info);
+                    guildInfos.Add(info);
                 }
             }
 
-            List<Task> tasks = new List<Task>();
+            var tasks = new List<Task>();
             tasks.Add(RegisterGlobalCommandsAsync(globalInfos, token));
-            foreach (KeyValuePair<ulong, List<TInteractionInfo>> guildCommandData in guildInfos)
+            tasks.Add(RegisterGuildCommandsAsync(guildInfos, token));
+
+
+            await Task.WhenAll(tasks);
+        }
+
+        private async Task RegisterGuildCommandsAsync(List<TInteractionInfo> guildInfos,
+            CancellationToken token = new CancellationToken())
+        {
+            var guildCommandsData = await _guildResolver.GetGuildsBulkAsync(guildInfos);
+            var tasks = new List<Task>();
+            foreach (var guildCommandData in guildCommandsData)
             {
                 tasks.Add(RegisterGuildCommandsAsync(guildCommandData.Key, guildCommandData.Value, token));
             }
 
-            return Task.WhenAll(tasks);
+            await Task.WhenAll(tasks);
         }
 
-        private async Task RegisterGlobalCommandsAsync(List<TInteractionInfo> globalInfos,
+        public async Task RegisterGuildCommandsAsync(ulong guildId, IInteractionHolder holder,
+            CancellationToken token = default)
+        {
+            IEnumerable<TInteractionInfo> commands =
+                holder.Interactions.Select(x => x.Info).OfType<TInteractionInfo>();
+            commands = await _guildResolver.FilterGuildCommandsAsync(guildId, commands);
+
+            await RegisterGuildCommandsAsync(guildId, commands.ToList(), token);
+        }
+
+        private Task RegisterGlobalCommandsAsync(List<TInteractionInfo> globalInfos,
             CancellationToken cancellationToken)
         {
-            IReadOnlyCollection<RestGlobalCommand>? registeredCommands = await _client.BulkOverwriteGlobalCommands(
+            return _client.BulkOverwriteGlobalCommands(
                 globalInfos.Select(x => x.BuiltCommand).ToArray(),
                 new RequestOptions() { CancelToken = cancellationToken });
-
-            foreach (RestGlobalCommand registeredCommand in registeredCommands)
-            {
-                TInteractionInfo matchedCommand =
-                    globalInfos.First(x => x.BuiltCommand.Name == registeredCommand.Name);
-
-                matchedCommand.Command = registeredCommand;
-                matchedCommand.Registered = true;
-            }
-
             // Persmissions of global commands are not supported currently
         }
 
-        private async Task RegisterGuildCommandsAsync(ulong guildId, List<TInteractionInfo> guildInfos,
+        private async Task RegisterGuildCommandsAsync(ulong guildId, IEnumerable<TInteractionInfo> guildInfos,
             CancellationToken cancellationToken)
         {
             IReadOnlyCollection<RestGuildCommand>? registeredCommands = await _client.BulkOverwriteGuildCommands(
@@ -95,9 +100,6 @@ namespace Discord.Net.Interactions.Commands
             {
                 TInteractionInfo matchedCommand =
                     guildInfos.First(x => x.BuiltCommand.Name == registeredCommand.Name);
-
-                matchedCommand.Command = registeredCommand;
-                matchedCommand.Registered = true;
 
                 // TODO: make bulk operation for this?
                 ApplicationCommandPermission[] commandPermissions =
@@ -118,20 +120,33 @@ namespace Discord.Net.Interactions.Commands
             }
         }
 
-        public Task UnregisterCommandsAsync(IInteractionHolder holder,
+        public async Task UnregisterCommandsAsync(IInteractionHolder holder,
             CancellationToken token = default)
         {
             List<Task> tasks = new List<Task>();
             tasks.Add(_client.BulkOverwriteGlobalCommands(Array.Empty<SlashCommandCreationProperties>(),
                 new RequestOptions() { CancelToken = token }));
 
-            foreach (ulong guildId in GetGuilds(holder))
+            foreach (var guildId in await GetGuilds(holder))
             {
                 tasks.Add(_client.BulkOverwriteGuildCommands(Array.Empty<SlashCommandCreationProperties>(), guildId,
                     new RequestOptions() { CancelToken = token }));
             }
 
-            return Task.WhenAll(tasks);
+            await Task.WhenAll(tasks);
+        }
+
+        public Task UnregisterGuildCommandsAsync(ulong guildId, IInteractionHolder holder,
+            CancellationToken token = default)
+        {
+            return _client.BulkOverwriteGuildCommands(Array.Empty<SlashCommandCreationProperties>(), guildId,
+                new RequestOptions() { CancelToken = token });
+        }
+
+        public Task RefreshGuildCommandsAndPermissionsAsync(ulong guildId, IInteractionHolder holder,
+            CancellationToken token = default)
+        {
+            return RegisterGuildCommandsAsync(guildId, holder, token);
         }
 
         public Task RefreshCommandsAndPermissionsAsync(IInteractionHolder holder,
@@ -140,15 +155,14 @@ namespace Discord.Net.Interactions.Commands
             return RegisterCommandsAsync(holder, token);
         }
 
-        private IEnumerable<ulong> GetGuilds(IInteractionHolder holder)
+        private async Task<IEnumerable<ulong>> GetGuilds(IInteractionHolder holder)
         {
-            return holder.Interactions
+            var commands = holder.Interactions
                 .Select(x => x.Info)
-                .OfType<TInteractionInfo>()
-                .Select(x => x.GuildId)
-                .Where(x => x is not null)
-                .Cast<ulong>()
-                .Distinct();
+                .OfType<TInteractionInfo>();
+
+            return (await _guildResolver.GetGuildsBulkAsync(commands))
+                .Select(x => x.Key);
         }
     }
 }

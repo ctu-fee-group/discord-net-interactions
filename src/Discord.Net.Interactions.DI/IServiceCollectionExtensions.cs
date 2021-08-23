@@ -5,6 +5,7 @@ using Discord.Net.Interactions.Components;
 using Discord.Net.Interactions.Handlers;
 using Discord.Net.Interactions.InteractionMatchers;
 using Discord.Net.Interactions.Permissions;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -12,6 +13,25 @@ namespace Discord.Net.Interactions.DI
 {
     public static class IServiceCollectionExtensions
     {
+        /// <summary>
+        /// Add guild resolver for specified guild
+        /// </summary>
+        /// <param name="collection"></param>
+        /// <param name="configuration">Configuration with <see cref="GuildOptions"/> schema</param>
+        /// <typeparam name="TInteractionInfo"></typeparam>
+        /// <returns></returns>
+        public static IServiceCollection AddOneGuildResolver<TInteractionInfo>(
+            this IServiceCollection collection, IConfiguration configuration)
+            where TInteractionInfo : SlashCommandInfo
+        {
+            collection
+                .Configure<GuildOptions>(configuration);
+            
+            return collection
+                .AddSingleton<IGuildResolver<TInteractionInfo>, DIOneGuildResolver<TInteractionInfo>>();
+        }
+
+        
         /// <summary>
         /// Add permission resolver that will simply allow execution of the command to everyone
         /// </summary>

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,216 +11,271 @@ namespace Discord.Net.Interactions.Commands
     /// <summary>
     /// Command registrator registering commands one by one calling discord API, making it slow, because of rate limiting
     /// </summary>
-    public class OneByOneCommandsRegistrator<TInteractionInfo> : ICommandsRegistrator
+    public class OneByOneCommandsRegistrator<TInteractionInfo> : ICommandsRegistrator, IDisposable
         where TInteractionInfo : SlashCommandInfo
     {
         private readonly DiscordRestClient _client;
         private readonly CommandCache _cache;
         private readonly ICommandPermissionsResolver<TInteractionInfo> _commandPermissionsResolver;
+        private readonly IGuildResolver<TInteractionInfo> _guildResolver;
 
-        public OneByOneCommandsRegistrator(ICommandPermissionsResolver<TInteractionInfo> commandPermissionsResolver,
+        public OneByOneCommandsRegistrator(
+            ICommandPermissionsResolver<TInteractionInfo> commandPermissionsResolver,
+            IGuildResolver<TInteractionInfo> guildResolver,
             DiscordRestClient client)
         {
             _commandPermissionsResolver = commandPermissionsResolver;
+            _guildResolver = guildResolver;
             _client = client;
             _cache = new CommandCache(client);
         }
 
         public async Task RegisterCommandsAsync(IInteractionHolder holder, CancellationToken token = default)
         {
-            foreach (TInteractionInfo heldCommand in holder.Interactions.Select(x => x.Info).OfType<TInteractionInfo>())
+            _cache.ResetIfNeeded();
+            var registrationTasks = new List<Task>();
+            var guildCommands = new List<TInteractionInfo>();
+
+            foreach (var commandInfo in holder.Interactions.Select(x => x.Info).OfType<TInteractionInfo>())
             {
-                try
+                commandInfo.BuiltCommand.DefaultPermission =
+                    await _commandPermissionsResolver.IsForEveryoneAsync(commandInfo, token);
+
+                if (commandInfo.Global)
                 {
-                    await RegisterCommandAsync(heldCommand, token);
-                }
-                catch (Exception e)
-                {
-                    throw new InvalidOperationException(
-                        $@"Could not register a command {heldCommand.BuiltCommand.Name}", e);
-                }
-            }
-        }
-
-        public Task UnregisterCommandsAsync(IInteractionHolder holder, CancellationToken token = default)
-        {
-            return Task.WhenAll(
-                holder.Interactions.Select(x => x.Info).OfType<TInteractionInfo>()
-                    .Select(x => UnregisterCommandAsync(x, token)));
-        }
-
-        public Task RefreshCommandsAndPermissionsAsync(IInteractionHolder holder,
-            CancellationToken token = default)
-        {
-            return Task.WhenAll(
-                holder.Interactions
-                    .Select(x => x.Info)
-                    .OfType<TInteractionInfo>()
-                    .Select(x => RefreshCommandAsync(x, token)));
-        }
-
-        private async Task RefreshCommandAsync(TInteractionInfo info, CancellationToken token = new CancellationToken())
-        {
-            if (info.Command == null)
-            {
-                throw new InvalidOperationException("Cannot refresh without the command registered");
-            }
-
-            await ModifyCommand(info, token);
-            await RefreshPermissions(info, token);
-        }
-
-        private async Task<IApplicationCommand> RegisterCommandAsync(TInteractionInfo info,
-            CancellationToken token = new CancellationToken())
-        {
-            if (info.Command == null)
-            {
-                SlashCommandCreationProperties command = await SetDefaultPermissionAsync(info, token);
-
-                if (info.Global)
-                {
-                    info.Command = await CreateGlobalCommand(info, token);
+                    registrationTasks.Add(RegisterGlobalCommandAsync(commandInfo, token));
                 }
                 else
                 {
-                    info.Command = await CreateGuildCommand(info, token);
+                    guildCommands.Add(commandInfo);
                 }
             }
 
-            info.Registered = true;
-            return info.Command;
-        }
-
-        private async Task UnregisterCommandAsync(TInteractionInfo info,
-            CancellationToken token = new CancellationToken())
-        {
-            if (info.Command != null)
+            var guildCommandsData = await _guildResolver.GetGuildsBulkAsync(guildCommands);
+            foreach (var guildCommandData in guildCommandsData)
             {
-                await info.Command.DeleteAsync(new()
-                {
-                    CancelToken = token
-                });
-                info.Command = null;
+                registrationTasks.Add(RegisterGuildCommandsAsync(guildCommandData.Key, guildCommandData.Value, token));
             }
 
-            info.Registered = false;
+            await Task.WhenAll(registrationTasks);
         }
 
-        private async Task ModifyCommand(TInteractionInfo info, CancellationToken token = new CancellationToken())
+        public async Task RegisterGuildCommandsAsync(ulong guildId, IInteractionHolder holder,
+            CancellationToken token = default)
         {
-            if (info.Command is RestGlobalCommand globalCommand &&
-                !info.Command.MatchesCreationProperties(info.BuiltCommand))
+            _cache.ResetIfNeeded();
+            var guildCommands = await _guildResolver.FilterGuildCommandsAsync(guildId,
+                holder.Interactions.Select(x => x.Info).OfType<TInteractionInfo>().ToList());
+
+            await RegisterGuildCommandsAsync(guildId, guildCommands, token);
+        }
+
+        public async Task UnregisterCommandsAsync(IInteractionHolder holder, CancellationToken token = default)
+        {
+            // TODO: merge Register and Unregister somehow (they are the same except called register/unregister functions)
+            _cache.ResetIfNeeded();
+            var unregistrationTasks = new List<Task>();
+            var guildCommands = new List<TInteractionInfo>();
+
+            foreach (var commandInfo in holder.Interactions.Select(x => x.Info).OfType<TInteractionInfo>())
             {
-                await globalCommand.ModifyAsync(props =>
-                    ModifyCommandProperties(info, props, token).GetAwaiter().GetResult());
-            }
-            else if (info.Command is RestGuildCommand guildCommand)
-            {
-                if (!info.Command.MatchesCreationProperties(info.BuiltCommand))
+                if (commandInfo.Global)
                 {
-                    await guildCommand.ModifyAsync(props =>
-                        ModifyCommandProperties(info, props, token).GetAwaiter().GetResult());
+                    unregistrationTasks.Add(UnregisterGlobalCommandAsync(commandInfo, token));
                 }
-
-                await RefreshPermissions(info, token);
-            }
-        }
-
-        private async Task RefreshPermissions(TInteractionInfo info, CancellationToken token = new CancellationToken())
-        {
-            if (info.Command is RestGlobalCommand)
-            {
-                return; // Global commands cannot have permissions (at least not in Discord.NET yet)
-            }
-            else if (info.Command is RestGuildCommand guildCommand)
-            {
-                ApplicationCommandPermission[] permissions =
-                    (await _commandPermissionsResolver.GetCommandPermissionsAsync(info, token)).ToArray();
-                GuildApplicationCommandPermission? commandPermission = await guildCommand.GetCommandPermission();
-
-                if (permissions.Length > 0 &&
-                    (commandPermission == null || !commandPermission.MatchesPermissions(permissions)))
+                else
                 {
-                    await guildCommand.ModifyCommandPermissions(permissions);
+                    guildCommands.Add(commandInfo);
                 }
             }
-        }
 
-        private async Task<SlashCommandCreationProperties> SetDefaultPermissionAsync(
-            TInteractionInfo info,
-            CancellationToken token = new CancellationToken())
-        {
-            info.BuiltCommand.DefaultPermission =
-                await _commandPermissionsResolver.IsForEveryoneAsync(info, token);
-            return info.BuiltCommand;
-        }
-
-        private async Task<ApplicationCommandProperties> ModifyCommandProperties(
-            TInteractionInfo info,
-            ApplicationCommandProperties command,
-            CancellationToken token = new CancellationToken())
-        {
-            command.Description = info.BuiltCommand.Description;
-            command.Name = info.BuiltCommand.Name;
-            command.Options = info.BuiltCommand.Options;
-            command.DefaultPermission =
-                await _commandPermissionsResolver.IsForEveryoneAsync(info, token);
-            return command;
-        }
-
-        private async Task<RestApplicationCommand> CreateGlobalCommand(TInteractionInfo info,
-            CancellationToken token = new CancellationToken())
-        {
-            RestGlobalCommand? globalCommand = await _cache.GetGlobalCommand(info.BuiltCommand.Name, token);
-
-            if (globalCommand != null)
+            var guildCommandsData = await _guildResolver.GetGuildsBulkAsync(guildCommands);
+            foreach (var guildCommandData in guildCommandsData)
             {
-                info.Command = globalCommand;
-                await ModifyCommand(info, token);
+                unregistrationTasks.Add(UnregisterGuildCommandsAsync(guildCommandData.Key, guildCommandData.Value,
+                    token));
             }
-            else
+
+            await Task.WhenAll(unregistrationTasks);
+        }
+
+        public async Task UnregisterGuildCommandsAsync(ulong guildId, IInteractionHolder holder,
+            CancellationToken token = default)
+        {
+            _cache.ResetIfNeeded();
+            var guildCommands = await _guildResolver.FilterGuildCommandsAsync(guildId,
+                holder.Interactions.Select(x => x.Info).OfType<TInteractionInfo>().ToList());
+
+            await UnregisterGuildCommandsAsync(guildId, guildCommands, token);
+        }
+
+        public async Task RefreshGuildCommandsAndPermissionsAsync(ulong guildId, IInteractionHolder holder,
+            CancellationToken token = default)
+        {
+            _cache.ResetIfNeeded();
+            var guildCommands = await _guildResolver.FilterGuildCommandsAsync(guildId,
+                holder.Interactions.Select(x => x.Info).OfType<TInteractionInfo>().ToList());
+
+            await RefreshGuildCommandsAsync(guildId, guildCommands, token);
+        }
+
+        public async Task RefreshCommandsAndPermissionsAsync(IInteractionHolder holder,
+            CancellationToken token = default)
+        {
+            // TODO: merge Register and Unregister somehow (they are the same except called register/unregister functions)
+            _cache.ResetIfNeeded();
+            var refreshTasks = new List<Task>();
+            var guildCommands = new List<TInteractionInfo>();
+
+            foreach (var commandInfo in holder.Interactions.Select(x => x.Info).OfType<TInteractionInfo>())
             {
-                globalCommand = await _client.CreateGlobalCommand(info.BuiltCommand, new RequestOptions()
+                commandInfo.BuiltCommand.DefaultPermission =
+                    await _commandPermissionsResolver.IsForEveryoneAsync(commandInfo, token);
+
+                if (commandInfo.Global)
                 {
-                    CancelToken = token
-                });
-                info.Command = globalCommand;
-
-                await RefreshPermissions(info, token);
+                    refreshTasks.Add(RefreshGlobalCommandAsync(commandInfo, token));
+                }
+                else
+                {
+                    guildCommands.Add(commandInfo);
+                }
             }
 
-            return globalCommand;
+            var guildCommandsData = await _guildResolver.GetGuildsBulkAsync(guildCommands);
+            foreach (var guildCommandData in guildCommandsData)
+            {
+                refreshTasks.Add(RefreshGuildCommandsAsync(guildCommandData.Key, guildCommandData.Value, token));
+            }
+
+            await Task.WhenAll(refreshTasks);
         }
 
-        private async Task<RestApplicationCommand> CreateGuildCommand(TInteractionInfo info,
-            CancellationToken token = new CancellationToken())
+        public void Dispose()
         {
-            if (info.GuildId == null)
+            _cache.Dispose();
+        }
+
+        private Task RegisterGuildCommandsAsync(ulong guildId, IEnumerable<TInteractionInfo> commands,
+            CancellationToken token)
+        {
+            return Task.WhenAll(commands.Select(x => RegisterGuildCommandAsync(guildId, x, token)));
+        }
+
+        private Task UnregisterGuildCommandsAsync(ulong guildId, IEnumerable<TInteractionInfo> commands,
+            CancellationToken token)
+        {
+            return Task.WhenAll(commands.Select(x => UnregisterGuildCommandAsync(guildId, x, token)));
+        }
+
+        private Task RefreshGuildCommandsAsync(ulong guildId, IEnumerable<TInteractionInfo> commands,
+            CancellationToken token)
+        {
+            return Task.WhenAll(commands.Select(x => RefreshGuildCommandAsync(guildId, x, token)));
+        }
+
+        private async Task RegisterGlobalCommandAsync(TInteractionInfo commandInfo, CancellationToken token)
+        {
+            if (await RefreshGlobalCommandAsync(commandInfo, token))
             {
-                throw new ArgumentException("GuildId cannot be null for guild commands");
+                return;
             }
 
-            RestGuildCommand? guildCommand =
-                await _cache.GetGuildCommand((ulong)info.GuildId, info.BuiltCommand.Name, token);
+            await _client.CreateGlobalCommand(commandInfo.BuiltCommand,
+                new RequestOptions() { CancelToken = token });
+        }
 
-            if (guildCommand != null)
+        private async Task RegisterGuildCommandAsync(ulong guildId, TInteractionInfo commandInfo,
+            CancellationToken token)
+        {
+            if (await RefreshGuildCommandAsync(guildId, commandInfo, token))
             {
-                info.Command = guildCommand;
-                await ModifyCommand(info, token);
+                return;
             }
-            else
+          
+            var command = await _client.CreateGuildCommand(commandInfo.BuiltCommand, guildId,
+                new RequestOptions() { CancelToken = token });
+            await RefreshCommandPermissionsAsync(commandInfo, command, token);
+        }
+
+        private async Task UnregisterGlobalCommandAsync(TInteractionInfo commandInfo, CancellationToken token)
+        {
+            var command = await _cache.GetGlobalCommand(commandInfo.BuiltCommand.Name, token);
+            if (command is not null)
             {
-                guildCommand = await _client.CreateGuildCommand(info.BuiltCommand, (ulong)info.GuildId,
-                    new RequestOptions()
-                    {
-                        CancelToken = token
-                    });
-                info.Command = guildCommand;
+                await command.DeleteAsync();
+            }
+        }
 
-                await RefreshPermissions(info, token);
+        private async Task UnregisterGuildCommandAsync(ulong guildId, TInteractionInfo commandInfo,
+            CancellationToken token)
+        {
+            var command = await _cache.GetGuildCommand(guildId, commandInfo.BuiltCommand.Name, token);
+            if (command is not null)
+            {
+                await command.DeleteAsync();
+            }
+        }
+
+        private async Task<bool> RefreshGlobalCommandAsync(TInteractionInfo commandInfo, CancellationToken token)
+        {
+            var command = await _cache.GetGlobalCommand(commandInfo.BuiltCommand.Name, token);
+            if (command is null)
+            {
+                return false;
             }
 
-            return guildCommand;
+            if (!command.MatchesCreationProperties(commandInfo.BuiltCommand))
+            {
+                await command.ModifyAsync(props =>
+                {
+                    props.Description = commandInfo.BuiltCommand.Description;
+                    //props.Name = commandInfo.BuiltCommand.Name;
+                    props.DefaultPermission = commandInfo.BuiltCommand.DefaultPermission;
+                    props.Options = commandInfo.BuiltCommand.Options;
+                }, new RequestOptions() { CancelToken = token });
+            }
+
+            return true;
+        }
+
+        private async Task<bool> RefreshGuildCommandAsync(ulong guildId, TInteractionInfo commandInfo,
+            CancellationToken token)
+        {
+            var command = await _cache.GetGuildCommand(guildId, commandInfo.BuiltCommand.Name, token);
+            if (command is null)
+            {
+                return false;
+            }
+
+            if (!command.MatchesCreationProperties(commandInfo.BuiltCommand))
+            {
+                await command.ModifyAsync(props =>
+                {
+                    props.Description = commandInfo.BuiltCommand.Description;
+                    //props.Name = commandInfo.BuiltCommand.Name;
+                    props.DefaultPermission = commandInfo.BuiltCommand.DefaultPermission;
+                    props.Options = commandInfo.BuiltCommand.Options;
+                }, new RequestOptions() { CancelToken = token });
+            }
+
+            await RefreshCommandPermissionsAsync(commandInfo, command, token);
+            return true;
+        }
+
+        private async Task RefreshCommandPermissionsAsync(TInteractionInfo info, RestGuildCommand command,
+            CancellationToken token)
+        {
+            var currentPermissions = await command.GetCommandPermission(new RequestOptions() { CancelToken = token });
+            var correctPermissions =
+                (await _commandPermissionsResolver.GetCommandPermissionsAsync(info, token)).ToArray();
+
+            // TODO: remove correctPermissions.Length > 0 when it is fixed
+            if (correctPermissions.Length > 0 && (currentPermissions is null || !currentPermissions.MatchesPermissions(correctPermissions)))
+            {
+                await command.ModifyCommandPermissions(correctPermissions,
+                    new RequestOptions() { CancelToken = token });
+            }
         }
     }
 }

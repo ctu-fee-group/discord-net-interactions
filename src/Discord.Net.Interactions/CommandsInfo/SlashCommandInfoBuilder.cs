@@ -16,11 +16,11 @@ namespace Discord.Net.Interactions.CommandsInfo
             SlashCommandInfo info;
             if (Handler is not null)
             {
-                info = new SlashCommandInfo(DiscordNetBuilder, Handler, Global, GuildId);
+                info = new SlashCommandInfo(DiscordNetBuilder, Handler, Global);
             }
             else if (InstancedHandler is not null)
             {
-                info = new SlashCommandInfo(DiscordNetBuilder, InstancedHandler, Global, GuildId);
+                info = new SlashCommandInfo(DiscordNetBuilder, InstancedHandler, Global);
             }
             else
             {
@@ -46,11 +46,6 @@ namespace Discord.Net.Interactions.CommandsInfo
         /// If the command should be registered as global
         /// </summary>
         public bool Global { get; set; }
-
-        /// <summary>
-        /// Where the command should be added to
-        /// </summary>
-        public ulong? GuildId { get; set; }
 
         /// <summary>
         /// Handler that will be called when the command was executed by a user
@@ -108,18 +103,6 @@ namespace Discord.Net.Interactions.CommandsInfo
         public TBuilder SetGlobal(bool global = true)
         {
             Global = global;
-            return _builderInstance;
-        }
-
-        /// <summary>
-        /// Set guild for the guild command to be added to, set the command non-global (guild)
-        /// </summary>
-        /// <param name="guildId"></param>
-        /// <returns></returns>
-        public TBuilder WithGuild(ulong guildId)
-        {
-            GuildId = guildId;
-            Global = false;
             return _builderInstance;
         }
 

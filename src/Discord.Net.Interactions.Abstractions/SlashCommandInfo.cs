@@ -26,28 +26,21 @@ namespace Discord.Net.Interactions.Abstractions
     public class SlashCommandInfo : InteractionInfo
     {
         public SlashCommandInfo(SlashCommandBuilder builder,
-            DiscordInteractionHandler handler, bool global, ulong? guildId)
+            DiscordInteractionHandler handler, bool global)
         : base(handler)
         {
             BuiltCommand = builder.Build();
             Global = global;
-            GuildId = guildId;
         }
         
         public SlashCommandInfo(SlashCommandBuilder builder,
-            InstancedDiscordInteractionHandler instancedHandler, bool global, ulong? guildId)
+            InstancedDiscordInteractionHandler instancedHandler, bool global)
             : base (instancedHandler)
         {
 
             BuiltCommand = builder.Build();
             Global = global;
-            GuildId = guildId;
         }
-
-        /// <summary>
-        /// If the command was registered yet
-        /// </summary>
-        public bool Registered { get; set; }
 
         /// <summary>
         /// Whether it should be a global command
@@ -55,18 +48,8 @@ namespace Discord.Net.Interactions.Abstractions
         public bool Global { get; } = false;
 
         /// <summary>
-        /// What guild to add the command to
-        /// </summary>
-        public ulong? GuildId { get; }
-
-        /// <summary>
         /// Built command that is set after calling Build()
         /// </summary>
         public SlashCommandCreationProperties BuiltCommand { get; }
-
-        /// <summary>
-        /// Registered command that is set after calling RegisterCommandAsync
-        /// </summary>
-        public RestApplicationCommand? Command { get; set; }
     }
 }
