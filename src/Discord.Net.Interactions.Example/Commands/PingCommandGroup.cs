@@ -19,13 +19,11 @@ namespace Discord.Net.Interactions.Example.Commands
             Feedback3
         };
         
-        private readonly CommandsOptions _options;
         private readonly ILogger _logger;
 
-        public PingCommandGroup(ILogger<PingCommandGroup> logger, IOptions<CommandsOptions> options)
+        public PingCommandGroup(ILogger<PingCommandGroup> logger)
         {
             _logger = logger;
-            _options = options.Value;
         }
 
         private Task HandlePing(SocketInteraction interaction, IMentionable mentionable, CancellationToken cancellationToken)
@@ -104,7 +102,7 @@ namespace Discord.Net.Interactions.Example.Commands
                             .AddChoice("Feedback2", (int)Feedback.Feedback2)
                             .AddChoice("Feedback3", (int)Feedback.Feedback3)
                         )))
-                .WithGuild(_options.GuildId)
+                .SetGlobal(false)
                 .Build();
             
             // Create executor along with logging in case of an error

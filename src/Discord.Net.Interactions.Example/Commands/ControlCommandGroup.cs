@@ -61,7 +61,7 @@ namespace Discord.Net.Interactions.Example.Commands
                 .WithBuilder(new SlashCommandBuilder()
                     .WithName("quit")
                     .WithDescription("Exit the bot application"))
-                .WithGuild(_options.GuildId)
+                .SetGlobal(false)
                 .Build();
 
             // Create executor along with Deferring ephemerally and logging in case of an error

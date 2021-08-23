@@ -40,8 +40,9 @@ namespace Discord.Net.Interactions.Example
                 .AddSingleton<DiscordSocketClient>()
                 .AddSingleton<DiscordRestClient>(p => p.GetRequiredService<DiscordSocketClient>().Rest)
                 .AddDefaultInteractionService()
-                .AddBulkCommandRegistrator<SlashCommandInfo>() // commands will be registered one by one
+                .AddOneByOneCommandRegistrator<SlashCommandInfo>() // commands will be registered one by one
                 .AddEveryoneCommandPermissionResolver<SlashCommandInfo>() // everyone will have permission to use the command
+                .AddOneGuildResolver<SlashCommandInfo>(configuration.GetSection("Commands")) // the commands will be registered only in one guild specified by configuration
                 .AddCommandGroup<ControlCommandGroup>() // Group PingCommandGroup will be registered and used
                 .AddCommandGroup<PingCommandGroup>()
                 // logging
