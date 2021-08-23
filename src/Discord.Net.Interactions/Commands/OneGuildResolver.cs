@@ -9,22 +9,13 @@ namespace Discord.Net.Interactions.Commands
     public class OneGuildResolver<TSlashInfo> : IGuildResolver<TSlashInfo>
         where TSlashInfo : SlashCommandInfo
     {
-        private ulong _guildId;
-        private IEnumerable<ulong> _guildIdArray;
+        private readonly ulong _guildId;
+        private readonly IEnumerable<ulong> _guildIdArray;
 
         public OneGuildResolver(ulong guildId)
         {
-            GuildId = guildId;
-        }
-
-        public ulong GuildId
-        {
-            get => _guildId;
-            set
-            {
-                _guildId = value;
-                _guildIdArray = new[] { _guildId };
-            }
+            _guildId = guildId;
+            _guildIdArray = new[] { _guildId };
         }
 
         public Task<IEnumerable<ulong>> GetGuildAsync(TSlashInfo info)
