@@ -5,15 +5,20 @@ using Discord.Net.Interactions.Controllers.Attributes;
 
 namespace Discord.Net.Interactions.Controllers.Builders
 {
-    public record CommandGroupInfo(
-        CommandGroupInfo? Parent,
+    public record SlashGroupInfo(
+        SlashGroupInfo? Parent,
         SlashCommandInfo? Command,
-        SlashGroupAttribute? Group,
+        SlashGroupAttribute? GroupAttribute,
         IReadOnlyCollection<Attribute> Attributes,
-        IReadOnlyCollection<CommandGroupInfo> Children);
+        IReadOnlyCollection<SlashGroupInfo> Children);
 
     public record SlashCommandInfo(
         MethodInfo MethodInfo,
-        CommandGroupInfo? Parent,
+        SlashGroupInfo? Parent,
         SlashCommandAttribute Attribute);
+
+    public record ControllerInfo(
+        Type ControllerType,
+        IReadOnlyCollection<SlashGroupInfo> TopLevelGroups
+    );
 }
