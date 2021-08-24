@@ -14,12 +14,12 @@ namespace Discord.Net.Interactions
         protected readonly InteractionHandler _interactionHandler;
         protected readonly IInteractionHolder _interactionHolder;
         protected readonly ICommandsRegistrator _commandRegistrator;
-        protected readonly ICommandsGroupProvider _commandsGroupProvider;
+        protected readonly IProvider<ICommandGroup> _commandsGroupProvider;
         
         public InteractionsService(InteractionHandler interactionHandler,
             IInteractionHolder interactionHolder,
             ICommandsRegistrator commandsRegistrator,
-            ICommandsGroupProvider commandsGroupProvider)
+            IProvider<ICommandGroup> commandsGroupProvider)
         {
             _interactionHandler = interactionHandler;
             _interactionHolder = interactionHolder;
@@ -34,7 +34,7 @@ namespace Discord.Net.Interactions
         /// <param name="token"></param>
         public virtual async Task StartAsync(bool registerCommands = true, CancellationToken token = new CancellationToken())
         {
-            await Task.WhenAll(_commandsGroupProvider.GetGroups()
+            await Task.WhenAll(_commandsGroupProvider.GetData()
                 .Select(x => x.SetupCommandsAsync(_interactionHolder, token)));
 
             await _commandRegistrator.RegisterCommandsAsync(_interactionHolder, token);

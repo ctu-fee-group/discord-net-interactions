@@ -15,38 +15,37 @@ namespace Discord.Net.Interactions.DI
     /// CommandGroupsService should be treated as IOptions and it should be configured using
     /// <c>IServiceCollection.Configure<CommandsGroupsService>((groupsService) => groupsService.RegisterGroupType(...))</c>
     /// </remarks>
-    public class DICommandGroupsProvider : ICommandsGroupProvider
+    public class DIProvider<T> : IProvider<T>
+        where T : class
     {
-        private readonly List<Type> _groupTypes;
+        private readonly List<Type> _providerTypes;
         
-        public DICommandGroupsProvider()
+        public DIProvider()
         {
-            _groupTypes = new List<Type>();
+            _providerTypes = new List<Type>();
         }
         
         public IServiceProvider? Provider { get; set; }
 
-        public void RegisterGroupType(Type commandGroupType)
+        public void RegisterType(Type providerType)
         {
-            if (!commandGroupType.IsAssignableTo(typeof(ICommandGroup)))
+            if (!providerType.IsAssignableTo(typeof(T)))
             {
-                throw new ArgumentException($@"Type {commandGroupType.Name} cannot be added as it doesn't inherit from ICommandGroup");
+                throw new ArgumentException($@"Type {providerType.Name} cannot be added as it doesn't inherit from {typeof(T).FullName}");
             }
             
-            _groupTypes.Add(commandGroupType);
+            _providerTypes.Add(providerType);
         }
-
-        public IEnumerable<ICommandGroup> GetGroups()
+        public IEnumerable<T> GetData()
         {
             if (Provider is null)
             {
                 throw new InvalidOperationException("Register by type can only be done if service provider is used");
             }
 
-            return _groupTypes
+            return _providerTypes
                 .Select(x => Provider.GetRequiredService(x))
-                .Cast<ICommandGroup>();
+                .Cast<T>();
         }
-
     }
 }

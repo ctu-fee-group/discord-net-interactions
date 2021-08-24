@@ -19,10 +19,10 @@ namespace Discord.Net.Interactions.Handlers
         protected readonly CancellationTokenSource _commandsTokenSource;
         protected readonly DiscordSocketClient _client;
 
-        protected readonly IInteractionMatcherProvider _interactionMatcherProvider;
+        protected readonly IProvider<IInteractionMatcher> _interactionMatcherProvider;
 
         public InteractionHandler(DiscordSocketClient client, IInteractionHolder interactionsHolder,
-            IInteractionMatcherProvider matcherProvider)
+            IProvider<IInteractionMatcher> matcherProvider)
         {
             _interactionMatcherProvider = matcherProvider;
             _commandsTokenSource = new CancellationTokenSource();
@@ -49,7 +49,7 @@ namespace Discord.Net.Interactions.Handlers
         protected virtual Task HandleInteractionCreated(SocketInteraction interaction)
         {
             HeldInteraction? heldInteraction =
-                _interactionsHolder.TryMatch(_interactionMatcherProvider.GetMatchers(), interaction);
+                _interactionsHolder.TryMatch(_interactionMatcherProvider.GetData(), interaction);
 
             if (heldInteraction != null)
             {

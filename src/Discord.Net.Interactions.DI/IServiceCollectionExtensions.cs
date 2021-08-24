@@ -75,6 +75,22 @@ namespace Discord.Net.Interactions.DI
                 .AddSingleton<ICommandsRegistrator, OneByOneCommandsRegistrator<TInteractionInfo>>();
         }
 
+        public static IServiceCollection AddInteractionsProvider<T>(this IServiceCollection collection)
+            where T : class
+        {
+            collection
+                .AddOptions<DIProvider<T>>();
+
+            return collection
+                .AddSingleton<IProvider<T>>(p =>
+                {
+                    DIProvider<T> provider = p.GetRequiredService<IOptions<DIProvider<T>>>().Value;
+                    provider.Provider = p;
+
+                    return provider;
+                });
+        }
+
         /// <summary>
         /// Adds default InteractionHandler to the service collection
         /// </summary>
@@ -85,27 +101,6 @@ namespace Discord.Net.Interactions.DI
             Action<IServiceCollection>? configure = null)
         {
             collection
-                .AddOptions<DICommandGroupsProvider>();
-            collection
-                .AddOptions<DIInteractionMatcherProvider>();
-
-            collection
-                .AddSingleton<ICommandsGroupProvider>(p =>
-                {
-                    DICommandGroupsProvider provider =
-                        p.GetRequiredService<IOptions<DICommandGroupsProvider>>().Value;
-                    provider.Provider = p;
-
-                    return provider;
-                })
-                .AddSingleton<IInteractionMatcherProvider>(p =>
-                {
-                    DIInteractionMatcherProvider provider =
-                        p.GetRequiredService<IOptions<DIInteractionMatcherProvider>>().Value;
-                    provider.Provider = p;
-
-                    return provider;
-                })
                 .AddSingleton<IInteractionHolder, ThreadSafeInteractionHolder>()
                 .AddSingleton<IComponentHelper, ComponentHelper>()
                 .AddSingleton<InteractionHandler>()
@@ -128,30 +123,11 @@ namespace Discord.Net.Interactions.DI
         public static IServiceCollection AddCommandGroup<TGroup>(this IServiceCollection collection)
             where TGroup : class, ICommandGroup
         {
-            collection.AddSingleton<TGroup>();
+            return collection.AddProviderValue<ICommandGroup, TGroup>();
 
-            collection.Configure<DICommandGroupsProvider>(handler =>
-                handler.RegisterGroupType(typeof(TGroup)));
-
-            return collection;
         }
-        
-        /// <summary>
-        /// Adds CommandGroup as scoped and configures DICommandGroupsProvider to provide this group command correctly
-        /// </summary>
-        /// <param name="collection"></param>
-        /// <returns></returns>
-        public static IServiceCollection AddScopedCommandGroup<TGroup>(this IServiceCollection collection)
-            where TGroup : class, ICommandGroup
-        {
-            collection.AddScoped<TGroup>();
 
-            collection.Configure<DICommandGroupsProvider>(handler =>
-                handler.RegisterGroupType(typeof(TGroup)));
 
-            return collection;
-        }
-        
         /// <summary>
         /// Adds CommandGroup as singleton and configures DICommandGroupsProvider to provide this group command correctly
         /// </summary>
@@ -160,10 +136,18 @@ namespace Discord.Net.Interactions.DI
         public static IServiceCollection AddInteractionMatcher<TInteractionMatcher>(this IServiceCollection collection)
             where TInteractionMatcher : class, IInteractionMatcher
         {
-            collection.AddScoped<TInteractionMatcher>();
+            return collection.AddProviderValue<IInteractionMatcher, TInteractionMatcher>();
+        }
+        
+        public static IServiceCollection AddProviderValue<TProviderType, TProvideValueType>(this IServiceCollection collection)
+            where TProvideValueType : class, TProviderType
+            where TProviderType : class
+        {
+            collection.AddInteractionsProvider<TProviderType>();
+            collection.AddSingleton<TProvideValueType>();
 
-            collection.Configure<DIInteractionMatcherProvider>(handler =>
-                handler.RegisterInteractionMatcher(typeof(TInteractionMatcher)));
+            collection.Configure<DIProvider<TProviderType>>(handler =>
+                handler.RegisterType(typeof(TProvideValueType)));
 
             return collection;
         }
