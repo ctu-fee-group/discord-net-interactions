@@ -200,7 +200,7 @@ namespace Discord.Net.Interactions.Commands
 
         private async Task UnregisterGlobalCommandAsync(TInteractionInfo commandInfo, CancellationToken token)
         {
-            var command = await _cache.GetGlobalCommand(commandInfo.BuiltCommand.Name, token);
+            var command = await _cache.GetGlobalCommand(commandInfo.Name, token);
             if (command is not null)
             {
                 await command.DeleteAsync();
@@ -210,7 +210,7 @@ namespace Discord.Net.Interactions.Commands
         private async Task UnregisterGuildCommandAsync(ulong guildId, TInteractionInfo commandInfo,
             CancellationToken token)
         {
-            var command = await _cache.GetGuildCommand(guildId, commandInfo.BuiltCommand.Name, token);
+            var command = await _cache.GetGuildCommand(guildId, commandInfo.Name, token);
             if (command is not null)
             {
                 await command.DeleteAsync();
@@ -219,7 +219,7 @@ namespace Discord.Net.Interactions.Commands
 
         private async Task<bool> RefreshGlobalCommandAsync(TInteractionInfo commandInfo, CancellationToken token)
         {
-            var command = await _cache.GetGlobalCommand(commandInfo.BuiltCommand.Name, token);
+            var command = await _cache.GetGlobalCommand(commandInfo.Name, token);
             if (command is null)
             {
                 return false;
@@ -229,10 +229,17 @@ namespace Discord.Net.Interactions.Commands
             {
                 await command.ModifyAsync(props =>
                 {
-                    props.Description = commandInfo.BuiltCommand.Description;
-                    //props.Name = commandInfo.BuiltCommand.Name;
-                    props.DefaultPermission = commandInfo.BuiltCommand.DefaultPermission;
-                    props.Options = commandInfo.BuiltCommand.Options;
+                    if (props is SlashCommandProperties slashProperties)
+                    {
+                        slashProperties.Description = commandInfo.BuiltCommand.Description;
+                        //props.Name = commandInfo.BuiltCommand.Name;
+                        slashProperties.DefaultPermission = commandInfo.BuiltCommand.DefaultPermission;
+                        slashProperties.Options = commandInfo.BuiltCommand.Options;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("The command that is being modified is not a slash command");
+                    }
                 }, new RequestOptions() { CancelToken = token });
             }
 
@@ -242,7 +249,7 @@ namespace Discord.Net.Interactions.Commands
         private async Task<bool> RefreshGuildCommandAsync(ulong guildId, TInteractionInfo commandInfo,
             CancellationToken token)
         {
-            var command = await _cache.GetGuildCommand(guildId, commandInfo.BuiltCommand.Name, token);
+            var command = await _cache.GetGuildCommand(guildId, commandInfo.Name, token);
             if (command is null)
             {
                 return false;
@@ -252,10 +259,17 @@ namespace Discord.Net.Interactions.Commands
             {
                 await command.ModifyAsync(props =>
                 {
-                    props.Description = commandInfo.BuiltCommand.Description;
-                    //props.Name = commandInfo.BuiltCommand.Name;
-                    props.DefaultPermission = commandInfo.BuiltCommand.DefaultPermission;
-                    props.Options = commandInfo.BuiltCommand.Options;
+                    if (props is SlashCommandProperties slashProperties)
+                    {
+                        slashProperties.Description = commandInfo.BuiltCommand.Description;
+                        //props.Name = commandInfo.BuiltCommand.Name;
+                        slashProperties.DefaultPermission = commandInfo.BuiltCommand.DefaultPermission;
+                        slashProperties.Options = commandInfo.BuiltCommand.Options;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("The command that is being modified is not a slash command");
+                    }
                 }, new RequestOptions() { CancelToken = token });
             }
 
@@ -269,7 +283,7 @@ namespace Discord.Net.Interactions.Commands
             var currentPermissions = await command.GetCommandPermission(new RequestOptions() { CancelToken = token });
             var correctPermissions =
                 (await _commandPermissionsResolver.GetCommandPermissionsAsync(info, token)).ToArray();
-
+    
             // TODO: remove correctPermissions.Length > 0 when it is fixed
             if (correctPermissions.Length > 0 && (currentPermissions is null || !currentPermissions.MatchesPermissions(correctPermissions)))
             {

@@ -12,10 +12,10 @@ namespace Discord.Net.Interactions.Abstractions
         /// <param name="creationProperties"></param>
         /// <returns></returns>
         public static bool MatchesCreationProperties(this IApplicationCommand command,
-            SlashCommandCreationProperties creationProperties)
+            SlashCommandProperties creationProperties)
         {
-            if (command.DefaultPermission != creationProperties.DefaultPermission.GetValueOrDefault(false) ||
-                command.Description != creationProperties.Description || command.Name != creationProperties.Name)
+            if (command.DefaultPermission != creationProperties.DefaultPermission.GetValueOrDefault(false) || !creationProperties.Description.IsSpecified ||
+                command.Description != creationProperties.Description.Value || !creationProperties.Name.IsSpecified || command.Name != creationProperties.Name.Value)
             {
                 return false;
             }

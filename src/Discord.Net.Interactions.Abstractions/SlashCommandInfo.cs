@@ -29,6 +29,7 @@ namespace Discord.Net.Interactions.Abstractions
             DiscordInteractionHandler handler, bool global)
         : base(handler)
         {
+            Name = builder.Name;
             BuiltCommand = builder.Build();
             Global = global;
         }
@@ -37,10 +38,12 @@ namespace Discord.Net.Interactions.Abstractions
             InstancedDiscordInteractionHandler instancedHandler, bool global)
             : base (instancedHandler)
         {
-
+            Name = builder.Name;
             BuiltCommand = builder.Build();
             Global = global;
         }
+        
+        public string Name { get; }
 
         /// <summary>
         /// Whether it should be a global command
@@ -50,6 +53,6 @@ namespace Discord.Net.Interactions.Abstractions
         /// <summary>
         /// Built command that is set after calling Build()
         /// </summary>
-        public SlashCommandCreationProperties BuiltCommand { get; }
+        public SlashCommandProperties BuiltCommand { get; }
     }
 }

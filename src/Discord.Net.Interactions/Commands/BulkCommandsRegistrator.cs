@@ -61,7 +61,7 @@ namespace Discord.Net.Interactions.Commands
             var tasks = new List<Task>();
             foreach (var guildCommandData in guildCommandsData)
             {
-                tasks.Add(RegisterGuildCommandsAsync(guildCommandData.Key, guildCommandData.Value, token));
+                tasks.Add(RegisterGuildCommandsAsync(guildCommandData.Key, guildCommandData.Value.ToList(), token));
             }
 
             await Task.WhenAll(tasks);
@@ -81,16 +81,16 @@ namespace Discord.Net.Interactions.Commands
             CancellationToken cancellationToken)
         {
             return _client.BulkOverwriteGlobalCommands(
-                globalInfos.Select(x => x.BuiltCommand).ToArray(),
+                globalInfos.Select(x => x.BuiltCommand).Cast<ApplicationCommandProperties>().ToArray(),
                 new RequestOptions() { CancelToken = cancellationToken });
             // Persmissions of global commands are not supported currently
         }
 
-        private async Task RegisterGuildCommandsAsync(ulong guildId, IEnumerable<TInteractionInfo> guildInfos,
+        private async Task RegisterGuildCommandsAsync(ulong guildId, List<TInteractionInfo> guildInfos,
             CancellationToken cancellationToken)
         {
             IReadOnlyCollection<RestGuildCommand>? registeredCommands = await _client.BulkOverwriteGuildCommands(
-                guildInfos.Select(x => x.BuiltCommand).ToArray(),
+                guildInfos.Select(x => x.BuiltCommand).Cast<ApplicationCommandProperties>().ToArray(),
                 guildId,
                 new RequestOptions() { CancelToken = cancellationToken });
 
@@ -99,7 +99,7 @@ namespace Discord.Net.Interactions.Commands
             foreach (RestGuildCommand registeredCommand in registeredCommands)
             {
                 TInteractionInfo matchedCommand =
-                    guildInfos.First(x => x.BuiltCommand.Name == registeredCommand.Name);
+                    guildInfos.First(x => x.Name == registeredCommand.Name);
 
                 // TODO: make bulk operation for this?
                 ApplicationCommandPermission[] commandPermissions =
@@ -124,12 +124,12 @@ namespace Discord.Net.Interactions.Commands
             CancellationToken token = default)
         {
             List<Task> tasks = new List<Task>();
-            tasks.Add(_client.BulkOverwriteGlobalCommands(Array.Empty<SlashCommandCreationProperties>(),
+            tasks.Add(_client.BulkOverwriteGlobalCommands(Array.Empty<ApplicationCommandProperties>(),
                 new RequestOptions() { CancelToken = token }));
 
             foreach (var guildId in await GetGuilds(holder))
             {
-                tasks.Add(_client.BulkOverwriteGuildCommands(Array.Empty<SlashCommandCreationProperties>(), guildId,
+                tasks.Add(_client.BulkOverwriteGuildCommands(Array.Empty<ApplicationCommandProperties>(), guildId,
                     new RequestOptions() { CancelToken = token }));
             }
 
@@ -139,7 +139,7 @@ namespace Discord.Net.Interactions.Commands
         public Task UnregisterGuildCommandsAsync(ulong guildId, IInteractionHolder holder,
             CancellationToken token = default)
         {
-            return _client.BulkOverwriteGuildCommands(Array.Empty<SlashCommandCreationProperties>(), guildId,
+            return _client.BulkOverwriteGuildCommands(Array.Empty<ApplicationCommandProperties>(), guildId,
                 new RequestOptions() { CancelToken = token });
         }
 

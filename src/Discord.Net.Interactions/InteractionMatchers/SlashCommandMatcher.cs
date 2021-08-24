@@ -17,7 +17,7 @@ namespace Discord.Net.Interactions.InteractionMatchers
                 return false;
             }
 
-            return command.Data.Name == commandInfo.BuiltCommand.Name;
+            return command.Data.Name == commandInfo.Name;
         }
     }
 }
