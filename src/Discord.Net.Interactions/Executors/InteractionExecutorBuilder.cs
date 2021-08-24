@@ -25,6 +25,7 @@ namespace Discord.Net.Interactions.Executors
         private IInteractionExecutor? _base;
         private ICommandPermissionsResolver<TInteractionInfo>? _commandPermissionsResolver;
         private IInteractionHolder? _onlyOnceHolder;
+        private InteractionInfo[]? _onlyOnceInteractions;
         private string? _deferMessage;
         private ILogger? _logger;
 
@@ -85,9 +86,10 @@ namespace Discord.Net.Interactions.Executors
         /// Makes the interaction execute only once and then removes it from the holder
         /// </summary>
         /// <returns></returns>
-        public TBuilder OnlyOnce(IInteractionHolder holder)
+        public TBuilder OnlyOnce(IInteractionHolder holder, params InteractionInfo[] interactionInfos)
         {
             _onlyOnceHolder = holder;
+            _onlyOnceInteractions = interactionInfos;
             return _builderInstance;
         }
 
@@ -135,7 +137,7 @@ namespace Discord.Net.Interactions.Executors
 
             if (_onlyOnceHolder != null)
             {
-                executor = new OnlyOnceInteractionExecutor(_onlyOnceHolder, executor);
+                executor = new OnlyOnceInteractionExecutor(_onlyOnceHolder, _onlyOnceInteractions, executor);
             }
 
             if (_commandPermissionsResolver != null)

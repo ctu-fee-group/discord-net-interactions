@@ -12,12 +12,14 @@ namespace Discord.Net.Interactions.Executors
     public class OnlyOnceInteractionExecutor : IInteractionExecutor
     {
         private readonly IInteractionHolder _holder;
+        private readonly InteractionInfo[] _onlyOnceInteractions;
         private readonly IInteractionExecutor _underlyingExecutor;
         private readonly object _firstRunLock = new ();
         private bool _alreadyRan = false;
 
-        public OnlyOnceInteractionExecutor(IInteractionHolder holder, IInteractionExecutor underlyingExecutor)
+        public OnlyOnceInteractionExecutor(IInteractionHolder holder, InteractionInfo[] onlyOnceInteractions, IInteractionExecutor underlyingExecutor)
         {
+            _onlyOnceInteractions = onlyOnceInteractions;
             _underlyingExecutor = underlyingExecutor;
             _holder = holder;
         }
@@ -37,6 +39,11 @@ namespace Discord.Net.Interactions.Executors
 
             if (execute)
             {
+                foreach (InteractionInfo onlyOnceInteraction in _onlyOnceInteractions)
+                {
+                    _holder.RemoveInteraction(onlyOnceInteraction);
+                }
+                
                 _holder.RemoveInteraction(info);
                 return _underlyingExecutor.TryExecuteInteraction(info, interaction, token);
             }
