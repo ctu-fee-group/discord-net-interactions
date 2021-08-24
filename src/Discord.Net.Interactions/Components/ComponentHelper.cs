@@ -48,7 +48,7 @@ namespace Discord.Net.Interactions.Components
             builderAction(executorBuilder);
 
             IInteractionExecutor executor = executorBuilder
-                .WithRemoveInteractions(_holder, componentInfos.Cast<InteractionInfo>().ToArray())
+                .OnlyOnce(_holder, componentInfos.Cast<InteractionInfo>().ToArray())
                 .Build();
 
             foreach (MessageComponentInfo componentInfo in componentInfos)
