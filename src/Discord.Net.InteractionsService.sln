@@ -10,6 +10,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{4E
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Discord.Net.Interactions.Example", "Discord.Net.Interactions.Example\Discord.Net.Interactions.Example.csproj", "{95A654AA-0840-4994-8F5F-654AF0BF696D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Discord.Net.Interactions.Controllers", "Discord.Net.Interactions.Controllers\Discord.Net.Interactions.Controllers.csproj", "{C8AFD317-4CE1-4018-9E97-D08BDF542AE2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example.Controllers", "Example.Controllers\Example.Controllers.csproj", "{DE509519-1038-4EDA-A448-5DC1D4DE0991}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,8 +36,17 @@ Global
 		{95A654AA-0840-4994-8F5F-654AF0BF696D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{95A654AA-0840-4994-8F5F-654AF0BF696D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{95A654AA-0840-4994-8F5F-654AF0BF696D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C8AFD317-4CE1-4018-9E97-D08BDF542AE2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C8AFD317-4CE1-4018-9E97-D08BDF542AE2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C8AFD317-4CE1-4018-9E97-D08BDF542AE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C8AFD317-4CE1-4018-9E97-D08BDF542AE2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DE509519-1038-4EDA-A448-5DC1D4DE0991}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DE509519-1038-4EDA-A448-5DC1D4DE0991}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DE509519-1038-4EDA-A448-5DC1D4DE0991}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DE509519-1038-4EDA-A448-5DC1D4DE0991}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{95A654AA-0840-4994-8F5F-654AF0BF696D} = {4EED7ED4-1974-4C9C-9AE8-DED27E24DE59}
+		{DE509519-1038-4EDA-A448-5DC1D4DE0991} = {4EED7ED4-1974-4C9C-9AE8-DED27E24DE59}
 	EndGlobalSection
 EndGlobal
